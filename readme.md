@@ -1,5 +1,5 @@
 # avr-fast-div: optimized integer division for avr-gcc
-*Up to* 40% improvement in division speed on AVR hardware.
+Division is a relatively slow operation on all platforms, compared to addition, subrtraction & multiplication. This library provides *up to* 40% improvement in run time division speed on AVR hardware.
 
 Exact speedup varies depending on data types & number ranges - see below.
 ## Summary
@@ -15,8 +15,12 @@ The optimizations are most effective when your number ranges are constrained to 
 1. `#include "avr_fast_div.h"`
 2. Replace all divide operations with a call to fast_div. I.e.
     * `a / b` -> `fast_div(a, b)`
+
+The code base is compatible with all platforms: non-AVR builds compile down to the standard division operator.
+
+**Note:** if the divisor (`b`) is a [compile time constant greater than 8-bits](https://stackoverflow.com/questions/47994933/why-doesnt-gcc-or-clang-on-arm-use-division-by-invariant-integers-using-multip), you probably want to use [libdivide](https://libdivide.com/) instead.
 ## Background
-Since the AVR architecture has no hardware divider, all division is done in software by the compiler emitting a call to one of the division functions (E.g. [__udivmodsi4](https://github.com/gcc-mirror/gcc/blob/cdd5dd2125ca850aa8599f76bed02509590541ef/libgcc/config/avr/lib1funcs.S#L1615)) contained in a [runtime support library](https://gcc.gnu.org/wiki/avr-gcc#Exceptions_to_the_Calling_Convention).
+Since the AVR architecture has no hardware divider, all run time division is done in software by the compiler emitting a call to one of the division functions (E.g. [__udivmodsi4](https://github.com/gcc-mirror/gcc/blob/cdd5dd2125ca850aa8599f76bed02509590541ef/libgcc/config/avr/lib1funcs.S#L1615)) contained in a [runtime support library](https://gcc.gnu.org/wiki/avr-gcc#Exceptions_to_the_Calling_Convention).
 
 By neccesity, the division functions are optimised for the general case. Combined with integer type promotion, this can result in sub-optimal division speed. E.g.
 
