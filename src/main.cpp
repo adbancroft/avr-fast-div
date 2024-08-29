@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "avr-fast-div.h"
+#include "avr_fast_div.h"
 
 void setup()
 {

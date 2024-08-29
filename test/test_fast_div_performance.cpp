@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "avr-fast-div.h"
+#include "avr_fast_div.h"
 #include "lambda_timer.hpp"
 #include "unity_print_timers.hpp"
 #include "test_utils.h"
