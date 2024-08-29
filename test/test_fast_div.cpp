@@ -5,7 +5,6 @@
 
 // Wrap up the assertion that a/b==fast_div(a,b)
 // and provide pretty error messages
-#define ASSERT_FASTDIV(dividend, divisor) assert_fastdiv(dividend, divisor)
 template <typename TDividend, typename TDivisor>
 static void assert_fastdiv(TDividend dividend, TDivisor divisor) {
   TDividend expected = (TDividend)(dividend/divisor);
@@ -58,12 +57,16 @@ static void test_fast_div_16(void) {
 static void test_fast_div_32(void) {
   // i32/i32
   assert_fastdiv_range((int32_t)INT32_MIN, (int32_t)INT32_MAX, (int32_t)INT32_MIN, (int32_t)INT32_MAX);
-  // u32/u32
-  assert_fastdiv_range((uint32_t)0U, (uint32_t)UINT32_MAX, (uint32_t)0U, (uint32_t)UINT32_MAX);
   // i32/i16
   assert_fastdiv_range((int32_t)INT32_MIN, (int32_t)INT32_MAX, (int16_t)INT16_MIN, (int16_t)INT16_MAX);
   // i32/i8
   assert_fastdiv_range((int32_t)INT32_MIN, (int32_t)INT32_MAX, (int8_t)INT8_MIN, (int8_t)INT8_MAX);
+  // u32/u32
+  assert_fastdiv_range((uint32_t)0U, (uint32_t)UINT32_MAX, (uint32_t)0U, (uint32_t)UINT32_MAX);
+  // u32/u16
+  assert_fastdiv_range((uint32_t)0U, (uint32_t)UINT32_MAX, (uint16_t)0U, (uint16_t)UINT16_MAX);
+  // u32/u8
+  assert_fastdiv_range((uint32_t)0U, (uint32_t)UINT32_MAX, (uint8_t)0U, (uint8_t)UINT8_MAX);
 }
 
 void test_fast_div(void) {
