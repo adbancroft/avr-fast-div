@@ -14,6 +14,12 @@ void setup()
     // if board doesn't support software reset via Serial.DTR/RTS
     delay(2000);
 
+#if defined(CORE_TEENSY)
+    // Without this, Teensy 3.5 produces a linker error:
+    //  "undefined reference to `_write'""
+    Serial.println("");
+#endif
+
     UNITY_BEGIN(); 
     test_implementation_details();
     test_implementation_performance();

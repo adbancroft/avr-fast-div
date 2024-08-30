@@ -343,6 +343,9 @@ static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
 }
 #else
 // Non-AVR platforms just fallback to standard div operator
-#define fast_div(a, b) ((a)/(b))
+template <typename TDividend, typename TDivisor>
+static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
+  return dividend / divisor;
+}
 #endif
 /// @}
