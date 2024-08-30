@@ -25,9 +25,9 @@ Since the AVR architecture has no hardware divider, all run time division is don
 By neccesity, the division functions are optimised for the general case. Combined with integer type promotion, this can result in sub-optimal division speed. E.g.
 
     uint16_t divisor = 355;    // Note: greater than UINT8_MAX
-    uint32_t dividend = 35123; // Note: greater than UINT16_MAX
+    uint32_t dividend = 85123; // Note: greater than UINT16_MAX
     
-    uint32_t result = dividend / divisor;  // 98U
+    uint32_t result = dividend / divisor;  // 239U
     // 1. Divisor is promoted to uint32_t
     // (following C/C++ integer promotion rules)
     // 2. __udivmodsi4() is called to divide (32/32=>32 division)
