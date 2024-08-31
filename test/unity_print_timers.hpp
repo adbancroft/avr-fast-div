@@ -1,5 +1,5 @@
 #pragma once
-#include <Unity.h>
+#include <unity.h>
 #include "timer.hpp"
 
 static inline void MESSAGE_TIMERS(const simple_timer_t &timerA, const simple_timer_t &timerB) {

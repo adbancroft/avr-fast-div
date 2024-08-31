@@ -23,10 +23,22 @@ public:
         return (T)(_begin + (_step_size * step));
     }
 
-    constexpr T num_steps(void) const {
+    constexpr uint16_t num_steps(void) const {
         return _num_step;
     }
+
+    constexpr TStepSize step_size(void) const {
+        return _step_size;
+    }
     
+    constexpr T rangeMin(void) const {
+        return _begin;
+    }    
+    
+    constexpr T rangeMax(void) const {
+        return (T)(_begin + (_step_size * _num_step));
+    }    
+
 private:
     T _begin;
     uint16_t _num_step;  

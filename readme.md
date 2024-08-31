@@ -1,5 +1,5 @@
 # avr-fast-div: optimized integer division for avr-gcc
-Division is a relatively slow operation on all platforms, compared to addition, subrtraction & multiplication. This library provides *up to* 40% improvement in run time division speed on AVR hardware.
+Division is a relatively slow operation on all platforms, compared to addition, subrtraction & multiplication. This library provides *up to* 60% improvement in run time division speed on AVR hardware.
 
 Exact speedup varies depending on data types & number ranges - see below.
 ## Summary

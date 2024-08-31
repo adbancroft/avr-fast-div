@@ -31,7 +31,7 @@
 #endif
 #endif
 
-#if defined(USE_OPTIMIZED_DIV)
+#if defined(USE_OPTIMIZED_DIV) || defined(UNIT_TEST)
 
 // Private to the fast_div() implementation
 /// @cond
@@ -104,6 +104,10 @@ namespace type_traits {
   template<typename _Tp>
     using make_unsigned_t = typename make_unsigned<_Tp>::type;
 }
+
+#endif
+
+#if defined(USE_OPTIMIZED_DIV)
 
 // Private to the fast_div() implementation
 namespace optimized_div_impl {
@@ -287,6 +291,9 @@ static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
 }
 
 static inline uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
+  if (udivisor<(uint16_t)UINT8_MAX) {
+    return fast_div(udividend, (uint8_t)udivisor);
+  }
   return udividend / udivisor;
 }
 
@@ -301,7 +308,13 @@ static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   // Use u32/u16=>u16 if possible
   if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
     return optimized_div_impl::udivSiHi2(udividend, udivisor).quot;
-  }
+  } 
+// Fallback to 24-bit if supported
+#if defined(__UINT24_MAX__)
+  if((udividend<__UINT24_MAX__)) {
+    return (__uint24)udividend / (__uint24)udivisor;
+  }  
+#endif   
   return udividend / udivisor;
 }
 
@@ -310,6 +323,12 @@ static inline uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {
   if (udivisor<(uint32_t)UINT16_MAX) {
     return fast_div(udividend, (uint16_t)udivisor);
   }
+// Fallback to 24-bit if supported
+#if defined(__UINT24_MAX__)
+  if((udividend<__UINT24_MAX__) && (udivisor<__UINT24_MAX__)) {
+    return (__uint24)udividend / (__uint24)udivisor;
+  }  
+#endif  
   return udividend / udivisor;
 }
 
