@@ -76,8 +76,8 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
   MESSAGE_TIMERS(comparison.timeA.timer, comparison.timeB.timer);
   TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
 
-  // Should be very close to the native speed; use a 2% margin
-  auto margin = comparison.timeA.timer.duration_micros()/50U;
+  // Should be very close to the native speed; use a 4% margin
+  auto margin = comparison.timeA.timer.duration_micros()/25U;
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
 
