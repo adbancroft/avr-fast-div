@@ -11,18 +11,18 @@ static constexpr uint32_t MICROS_PER_HOUR = MICROS_PER_MIN*60U;
 
 static void assert_udivSiHi2(uint32_t dividend, uint16_t divisor) {
     auto native = ldiv(dividend, divisor);
-    auto optimised = optimized_div_impl::udivSiHi2(dividend, divisor);
-    TEST_ASSERT_EQUAL_UINT16(native.quot, optimised.quot);
-    TEST_ASSERT_EQUAL_UINT16(native.rem, optimised.rem);
+    auto optimised = optimized_div_impl::divide(dividend, divisor);
+    TEST_ASSERT_EQUAL_UINT16(native.quot, optimised & 0x0000FFFFU);
+    TEST_ASSERT_EQUAL_UINT16(native.rem, (uint16_t)(optimised >> 16U));
 }
 
 static void test_udivSiHi2(void)
 {
   // Divide by zero
-  TEST_ASSERT_EQUAL_UINT16(UINT16_MAX, optimized_div_impl::udivSiHi2(0, 0).quot);
+  TEST_ASSERT_EQUAL_UINT16(UINT16_MAX, optimized_div_impl::divide( (uint32_t)0,  (uint16_t)0) & 0x0000FFFFU);
 
   // Result doesn't fit into 16-bits
-  TEST_ASSERT_EQUAL_UINT16((UINT16_MAX/2)+1, optimized_div_impl::udivSiHi2(UINT32_MAX, UINT16_MAX).quot);
+  TEST_ASSERT_EQUAL_UINT16((UINT16_MAX/2)+1, optimized_div_impl::divide(UINT32_MAX, UINT16_MAX) & 0x0000FFFFU);
 
   assert_udivSiHi2(1, 1);
   assert_udivSiHi2(UINT16_MAX+1, UINT16_MAX);
@@ -36,18 +36,18 @@ static void test_udivSiHi2(void)
 
 static void assert_udivHiQi2(uint16_t dividend, uint8_t divisor) {
   auto native = div(dividend, divisor);
-  auto optimised = optimized_div_impl::udivHiQi2(dividend, divisor);
-  TEST_ASSERT_EQUAL_UINT16(native.quot, optimised.quot);
-  TEST_ASSERT_EQUAL_UINT16(native.rem, optimised.rem);    
+  auto optimised = optimized_div_impl::divide(dividend, divisor);
+  TEST_ASSERT_EQUAL_UINT16(native.quot, optimised & 0x00FFU);
+  TEST_ASSERT_EQUAL_UINT16(native.rem, optimised >> 8U);    
 }
 
 static void test_udivHiQi2(void)
 {
   // Divide by zero
-  TEST_ASSERT_EQUAL_UINT16(UINT8_MAX, optimized_div_impl::udivHiQi2(0, 0).quot);
+  TEST_ASSERT_EQUAL_UINT16(UINT8_MAX, optimized_div_impl::divide((uint16_t)0, (uint8_t)0) & 0x00FFU);
 
   // Result doesn't fit into 8-bits
-  TEST_ASSERT_EQUAL_UINT16((UINT8_MAX/2U)+1U, optimized_div_impl::udivHiQi2(UINT16_MAX, UINT8_MAX).quot);
+  TEST_ASSERT_EQUAL_UINT16((UINT8_MAX/2U)+1U, optimized_div_impl::divide((uint16_t)UINT16_MAX, (uint8_t)UINT8_MAX) & 0x00FFU);
 
   assert_udivHiQi2(1, 1);
   assert_udivHiQi2(UINT8_MAX+1, UINT8_MAX);

@@ -5,6 +5,7 @@
 */
 
 #include <stdint.h>
+#include <limits.h>
 
 /// @defgroup group-opt-div Optimised integer division for the AVR platform
 ///
@@ -125,135 +126,164 @@ template <typename TDividend, typename TDivisor>
 static constexpr inline bool udivResultFitsInDivisor(TDividend dividend, TDivisor divisor) {
   static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
   static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
-  return divisor>(TDivisor)( dividend >> ((sizeof(TDividend)-sizeof(TDivisor))*8U));
+  return (dividend<=divisor) || divisor>(TDivisor)( dividend >> ((sizeof(TDividend)-sizeof(TDivisor))*8U));
 }
 
-/// @brief Return type for udivSiHi2
-struct udiv16_t {
-  uint16_t quot; 
-  uint16_t rem;
-};
+// Not as fast or compact as the assembly code, but it is more portable.
+#if 0
 
-/**
- * @brief Optimised division: uint32_t/uint16_t => uint16_t quotient + uint16_t remainder
- * 
- * Optimised division of unsigned 32-bit by unsigned 16-bit when it is known
- * that the quotient fits into unsigned 16-bit.
- * 
- * ~60% quicker than raw 32/32 => 32 division on ATMega
- * 
- * @note Bad things will likely happen if the quotient doesn't fit into 16-bits.
- * @note Copied from https://stackoverflow.com/a/66593564
- * 
- * @param dividend The dividend (numerator)
- * @param divisor The divisor (denominator)
- * @return udiv16_t 
- */
-static inline udiv16_t udivSiHi2(uint32_t dividend, uint16_t divisor)
+#if 0 // WIP
+
+// Rotate Left
+template <typename T, uint8_t n>
+static inline T rotl (const T &x)
 {
-  if (divisor==0U) { return { .quot = UINT16_MAX, .rem = 0 }; }
+  constexpr unsigned int mask = (CHAR_BIT*sizeof(T)-1);  // e.g. 31
+  return (x<<n) | (x>>( (-n)&mask ));
+}
 
-// The assembly code is worth an additional 10% perf improvement on AVR
-#define AVR_FAST_DIV_ASM
-#if defined(AVR_FAST_DIV_ASM)
-  #define INDEX_REG "r16"
+template <typename TDividend, typename TDivisor>
+static inline bool compare_rem_divisor(const TDividend &dividend, const TDivisor &b) {
+  static constexpr uint8_t bit_count = sizeof(TDivisor) * CHAR_BIT;
+  TDivisor hiword  = (TDivisor)(dividend >> bit_count);
+  return (hiword >= b);
+}
 
-  asm(
-      "    ldi " INDEX_REG ", 16 ; bits = 16\n\t"
-      "0:\n\t"
-      "    lsl  %A0      ; shift\n\t"
-      "    rol  %B0      ;  rem:quot\n\t"
-      "    rol  %C0      ;   left\n\t"
-      "    rol  %D0      ;    by 1\n\t"
-      "    brcs 1f       ; if carry out, rem > divisor\n\t"
-      "    cp   %C0, %A1 ; is rem less\n\t"
-      "    cpc  %D0, %B1 ;  than divisor ?\n\t"
-      "    brcs 2f       ; yes, when carry out\n\t"
-      "1:\n\t"
-      "    sub  %C0, %A1 ; compute\n\t"
-      "    sbc  %D0, %B1 ;  rem -= divisor\n\t"
-      "    ori  %A0, 1   ; record quotient bit as 1\n\t"
-      "2:\n\t"
-      "    dec " INDEX_REG " ; bits--\n\t"
-      "    brne 0b           ; until bits == 0"
-      : "=d" (dividend) 
-      : "d" (divisor) , "0" (dividend) 
-      : INDEX_REG
-  );
+template <typename TDividend, typename TDivisor>
+static inline TDividend subtract_rem_divisor(TDividend dividend, const TDivisor &divisor) {
+#if 0  
+  // Very, very slow
+  TDivisor *pUpper = ((TDivisor*)&dividend) + 1;
+  *pUpper = (TDivisor)(*pUpper - divisor);
+  return dividend;
+#endif 
 
-  // 
-  return { .quot = (uint16_t)(dividend & 0x0000FFFFU), .rem = (uint16_t)(dividend >> 16U) };
+  // This is too slow compared to the ASM, which subtracts in-place
+  static constexpr uint8_t bit_count = sizeof(divisor) * CHAR_BIT;
+  static constexpr TDividend mask = ((TDividend)1U<<bit_count)-1U;
+  uint16_t rem  = (uint16_t)(dividend >> bit_count);
+  return (dividend & mask) | ((TDividend)(rem - divisor) << bit_count);
+}
 
-#else
-  uint16_t quot = dividend;        
-  uint16_t rem  = dividend >> 16U;  
+template <typename TDividend, typename TDivisor>
+static inline TDividend udivCoreProcess1Bit(TDividend dividend, const TDivisor &divisor) {
+  static constexpr uint8_t bit_countMajor = sizeof(TDividend) * CHAR_BIT;
+  static constexpr TDividend carry_mask = (TDividend)1U << (bit_countMajor-1U);
+  const bool carry = dividend & carry_mask;
+  dividend = rotl<TDividend, 1U>(dividend);
+  if (carry || compare_rem_divisor(dividend, divisor)) {
+    dividend = subtract_rem_divisor(dividend, divisor) | (TDividend)1U;
+  }
+  return dividend;
+}
+#endif
 
-  uint8_t bits = sizeof(uint16_t) * CHAR_BIT;     
-  do {
+template <typename TDividend, typename TDivisor>
+static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
+  static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
+  static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
+  static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must be unsigned");
+
+  static constexpr uint8_t bit_count_divisor = sizeof(TDivisor) * CHAR_BIT;
+
+  if (divisor==0U) { return ((TDividend)1U<<bit_count_divisor)*2-1; }
+
+  TDivisor quot = (TDivisor)dividend;        
+  TDivisor rem  = (TDivisor)(dividend >> bit_count_divisor);  
+
+  for (uint8_t index=0U; index<bit_count_divisor; ++index) {
+    bool carry = rem >> (bit_count_divisor-1U);
     // (rem:quot) << 1, with carry out
-    bool carry = rem >> 15U;
-    rem  = (rem << 1U) | (quot >> 15U);
-    quot = quot << 1U;
+    rem  = (TDivisor)((rem << 1U) | (quot >> (bit_count_divisor-1U)));
+    quot = (TDivisor)(quot << 1U);
     // if partial remainder greater or equal to divisor, subtract divisor
     if (carry || (rem >= divisor)) {
-        rem = rem - divisor;
+        rem = (TDivisor)(rem - divisor);
         quot = quot | 1U;
     }
-    --bits;
-  } while (bits);
-  return { quot, rem };
-#endif  
+  }
+  return ((TDividend)rem << bit_count_divisor) | (TDividend)quot;
 }
 
-/// @brief Return type for udivHiQi2
-struct udiv8_t {
-  uint8_t quot; 
-  uint8_t rem;
-};
+#else
+
+// Process one step in the division algorithm for uint32_t/uint16_t
+static inline uint32_t divide_step(uint32_t dividend, const uint16_t &divisor) {
+    asm(
+        "    lsl  %A0      ; shift\n\t" \
+        "    rol  %B0      ;  rem:quot\n\t" \
+        "    rol  %C0      ;   left\n\t" \
+        "    rol  %D0      ;    by 1\n\t" \
+        "    brcs 1f       ; if carry out, rem > divisor\n\t" \
+        "    cp   %C0, %A1 ; is rem less\n\t" \
+        "    cpc  %D0, %B1 ;  than divisor ?\n\t" \
+        "    brcs 2f       ; yes, when carry out\n\t" \
+        "1:\n\t" \
+        "    sub  %C0, %A1 ; compute\n\t" \
+        "    sbc  %D0, %B1 ;  rem -= divisor\n\t" \
+        "    ori  %A0, 1   ; record quotient bit as 1\n\t" \
+        "2:\n\t"
+      : "=d" (dividend) 
+      : "d" (divisor) , "0" (dividend)
+      : 
+    ); 
+    return dividend;
+}
+
+// Process one step in the division algorithm for uint16_t/uint8_t
+static inline uint16_t divide_step(uint16_t dividend, const uint8_t &divisor) {
+    asm(
+        "    lsl  %A0      ; shift\n\t" \
+        "    rol  %B0      ;  rem:quot\n\t" \
+        "    brcs 1f       ; if carry out, rem > divisor\n\t" \
+        "    cpc  %B0, %A1 ; is rem less than divisor?\n\t" \
+        "    brcs 2f       ; yes, when carry out\n\t" \
+        "1:\n\t" \
+        "    sub  %B0, %A1 ; compute rem -= divisor\n\t" \
+        "    ori  %A0, 1   ; record quotient bit as 1\n\t" \
+        "2:\n\t"
+      : "=d" (dividend) 
+      : "d" (divisor) , "0" (dividend) 
+      : 
+    );
+    return dividend;  
+}
 
 /**
- * @brief Optimised division: uint16_t/uint8_t => uint8_t quotient + uint8_t remainder
+ * @brief Optimised division: uint[n]_t/uint[n/2U]_t => uint[n/2U]_t quotient + uint[n/2U]_t remainder
  * 
- * Optimised division of unsigned 16-bit by unsigned 8-bit when it is known
- * that the result fits into unsigned 8-bit.
+ * Optimised division of unsigned number by unsigned smaller data type when it is known
+ * that the quotient fits into the smaller data type. I.e.
+ *    uint32_t/uint16_t => uint16_t
+ *    uint16_t/uint8_t => uint8_t
  * 
- * ~60% quicker than raw 16/16 => 16 division on ATMega
+ * ~70% quicker than raw 32/32 => 32 division on ATMega
  * 
- * @note Bad things will likely happen if the result doesn't fit into 8-bits.
+ * @note Bad things will likely happen if the quotient doesn't fit into the divisor.
  * @note Copied from https://stackoverflow.com/a/66593564
  * 
  * @param dividend The dividend (numerator)
  * @param divisor The divisor (denominator)
- * @return udiv8_t 
+ * @return dividend/divisor 
  */
-static inline udiv8_t udivHiQi2(uint16_t dividend, uint8_t divisor)
-{
-    if (divisor==0U) { return { .quot = UINT8_MAX, .rem = 0U }; }
+template <typename TDividend, typename TDivisor>
+static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
+  static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
+  static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
+  static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must be unsigned");
 
-    #define INDEX_REG "r16"
+  static constexpr uint8_t bit_count = sizeof(TDivisor) * CHAR_BIT;
 
-    asm(
-        "    ldi " INDEX_REG ", 8 ; bits = 8\n\t"
-        "0:\n\t"
-        "    lsl  %A0      ; shift rem:quot\n\t"
-        "    rol  %B0      ;  left by 1\n\t"
-        "    brcs 1f       ; if carry out, rem > divisor\n\t"
-        "    cpc  %B0, %A1 ; is rem less than divisor?\n\t"
-        "    brcs 2f       ; yes, when carry out\n\t"
-        "1:\n\t"
-        "    sub  %B0, %A1 ; compute rem -= divisor\n\t"
-        "    ori  %A0, 1   ; record quotient bit as 1\n\t"
-        "2:\n\t"
-        "    dec  " INDEX_REG "     ; bits--\n\t"
-        "    brne 0b        ; until bits == 0"
-        : "=d" (dividend) 
-        : "d" (divisor) , "0" (dividend) 
-        : INDEX_REG
-    );
+  if (divisor==0U) { return ((TDividend)1U<<bit_count)*2-1; }
 
-  // Lower word contains the quotient, upper word contains the remainder.
-  return { .quot = (uint8_t)(dividend & 0x00FFU), .rem = (uint8_t)(dividend >> 8U) };
+  for (uint8_t index=0U; index<bit_count; ++index) {
+    dividend = divide_step(dividend, divisor);
+  }
+  return dividend;
 }
+
+#endif
+
 
 /// @brief A verion of abs that handles the edge case of INT(\d*)_MIN without overflow.
 ///
@@ -278,6 +308,8 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 
 /// @endcond
 
+// Public API
+
 static inline uint8_t fast_div(uint8_t udividend, uint8_t udivisor) {
   return udividend / udivisor;
 }
@@ -285,7 +317,7 @@ static inline uint8_t fast_div(uint8_t udividend, uint8_t udivisor) {
 static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
   // Use u16/u8=>u8 if possible
   if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
-    return optimized_div_impl::udivHiQi2(udividend, udivisor).quot;
+    return optimized_div_impl::divide(udividend, udivisor) & 0x00FFU;
   } 
   return udividend / udivisor;
 }
@@ -307,7 +339,7 @@ static inline uint32_t fast_div(uint32_t udividend, uint8_t udivisor) {
 static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   // Use u32/u16=>u16 if possible
   if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
-    return optimized_div_impl::udivSiHi2(udividend, udivisor).quot;
+    return optimized_div_impl::divide(udividend, udivisor) & 0x0000FFFFU;
   } 
 // Fallback to 24-bit if supported
 #if defined(__UINT24_MAX__)
@@ -360,11 +392,14 @@ static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
   }
   return uresult;
 }
+
 #else
+
 // Non-AVR platforms just fallback to standard div operator
 template <typename TDividend, typename TDivisor>
 static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
   return dividend / divisor;
 }
+
 #endif
 /// @}
