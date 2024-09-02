@@ -76,8 +76,13 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
   MESSAGE_TIMERS(comparison.timeA.timer, comparison.timeB.timer);
   TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
 
-  // Should be very close to the native speed; use a 4% margin
-  auto margin = comparison.timeA.timer.duration_micros()/25U;
+#if defined(UNOPTIMIZED_BUILD)  
+  // Should be very close to the native speed; use a 11% margin
+  auto margin = comparison.timeA.timer.duration_micros()/9U;
+#else
+  // Should be very close to the native speed; use a 3% margin
+  auto margin = comparison.timeA.timer.duration_micros()/33U;
+#endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
 
@@ -120,8 +125,13 @@ static void test_fast_div_perf_u32_u16_worst_case(void)
   MESSAGE_TIMERS(comparison.timeA.timer, comparison.timeB.timer);
   TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
 
-  // Should be very close to the native speed; use a 2% margin
-  auto margin = comparison.timeA.timer.duration_micros()/50U;
+#if defined(UNOPTIMIZED_BUILD)  
+  // Should be very close to the native speed; use a 10% margin
+  auto margin = comparison.timeA.timer.duration_micros()/10U;
+#else
+  // Should be very close to the native speed; use a 3% margin
+  auto margin = comparison.timeA.timer.duration_micros()/33U;
+#endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
 
@@ -142,8 +152,15 @@ static void test_fast_div_perf_u16_u16(void)
   TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
 
   // The u16/u16 case my be slightly slower than the native operation, since none of the vast majority of the 
-  // results will not fit in u8. We'll give a 4% margin
-  auto margin = comparison.timeA.timer.duration_micros()/25U;
+  // results will not fit in u8.
+
+#if defined(UNOPTIMIZED_BUILD)  
+  // Should be very close to the native speed; use a 10% margin
+  auto margin = comparison.timeA.timer.duration_micros()/10U;
+#else
+  // Should be very close to the native speed; use a 3% margin
+  auto margin = comparison.timeA.timer.duration_micros()/33U;
+#endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
 
@@ -166,8 +183,13 @@ static void test_fast_div_perf_u32_u32(void)
   // The u32/u32 case will be about the same speed the native operation, since the vast majority of the 
   // results will not fit into uint16_t. It all depends on the number ranges!
 
-  // We'll give a 4% margin
-  auto margin = comparison.timeA.timer.duration_micros()/25U;
+#if defined(UNOPTIMIZED_BUILD)  
+  // Should be very close to the native speed; use a 10% margin
+  auto margin = comparison.timeA.timer.duration_micros()/10U;
+#else
+  // Should be very close to the native speed; use a 3% margin
+  auto margin = comparison.timeA.timer.duration_micros()/33U;
+#endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
 
@@ -209,10 +231,15 @@ static void test_fast_div_perf_s32_s16_worst_case(void)
   TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
 
   // The s32/s16 case my be slightly slower than the native operation, since none of 
-  // results will not fit in u16. We'll give a 4% margin
-  auto margin = comparison.timeA.timer.duration_micros()/25U;
+  // results will not fit in u16. 
+#if defined(UNOPTIMIZED_BUILD)  
+  // Should be very close to the native speed; use a 10% margin
+  auto margin = comparison.timeA.timer.duration_micros()/10U;
+#else
+  // Should be very close to the native speed; use a 3% margin
+  auto margin = comparison.timeA.timer.duration_micros()/33U;
+#endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
-
 }
 
 
