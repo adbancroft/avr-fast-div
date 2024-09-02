@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <Unity.h>
+#include <unity.h>
 
 // ============================ SET_UNITY_FILENAME ============================ 
 

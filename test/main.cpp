@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
+#include <avr/sleep.h>
 
 extern void test_implementation_details(void);
 extern void test_implementation_performance(void);
@@ -26,6 +27,11 @@ void setup()
     test_fast_div();
     test_fast_div_performance();
     UNITY_END(); 
+    
+    // Tell SimAVR we are done
+    cli();
+    sleep_enable();
+    sleep_cpu();
 }
 
 void loop()
