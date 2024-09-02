@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <unity.h>
 #include "test_utils.h"
-#include "avr_fast_div.h"
+#include "avr-fast-div.h"
 
 // Wrap up the assertion that a/b==fast_div(a,b)
 // and provide pretty error messages

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "avr_fast_div.h"
+#include "avr-fast-div.h"
 
 template <typename T, typename TRange = type_traits::make_unsigned_t<T>>
 static inline constexpr TRange safe_range(const T &min, const T &max) {
