@@ -12,7 +12,13 @@ avr-fast-div contains optimizations for these operations:
 The optimizations are most effective when your number ranges are constrained to much less than the type maximum values. E.g. time in milliseconds will probably be uint32_t (the Arduino `millis()` function return type, max. value 4294967296), but your codebase only needs to track time for 1 hour (max. value 3600000).
 ## Using the library
 
-1. `#include "avr-fast-div.h"`
+### Installation
+The library is available in both the [Arduino Library](https://www.arduino.cc/reference/en/libraries/avr-fast-div/) and [PlatformIO Library](https://registry.platformio.org/libraries/adbancroft/avr-fast-div) registries. 
+
+The library can also be cloned & included locally or included directly from GitHub (if your tooling supports it). 
+
+### Code
+1. `#include <avr-fast-div.h>`
 2. Replace all divide operations with a call to fast_div. I.e.
     * `a / b` -> `fast_div(a, b)`
 
