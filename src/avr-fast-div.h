@@ -129,84 +129,6 @@ static constexpr inline bool udivResultFitsInDivisor(TDividend dividend, TDiviso
   return (dividend<=divisor) || divisor>(TDivisor)( dividend >> ((sizeof(TDividend)-sizeof(TDivisor))*8U));
 }
 
-// Not as fast or compact as the assembly code, but it is more portable.
-#if 0
-
-#if 0 // WIP
-
-// Rotate Left
-template <typename T, uint8_t n>
-static inline T rotl (const T &x)
-{
-  constexpr unsigned int mask = (CHAR_BIT*sizeof(T)-1);  // e.g. 31
-  return (x<<n) | (x>>( (-n)&mask ));
-}
-
-template <typename TDividend, typename TDivisor>
-static inline bool compare_rem_divisor(const TDividend &dividend, const TDivisor &b) {
-  static constexpr uint8_t bit_count = sizeof(TDivisor) * CHAR_BIT;
-  TDivisor hiword  = (TDivisor)(dividend >> bit_count);
-  return (hiword >= b);
-}
-
-template <typename TDividend, typename TDivisor>
-static inline TDividend subtract_rem_divisor(TDividend dividend, const TDivisor &divisor) {
-#if 0  
-  // Very, very slow
-  TDivisor *pUpper = ((TDivisor*)&dividend) + 1;
-  *pUpper = (TDivisor)(*pUpper - divisor);
-  return dividend;
-#endif 
-
-  // This is too slow compared to the ASM, which subtracts in-place
-  static constexpr uint8_t bit_count = sizeof(divisor) * CHAR_BIT;
-  static constexpr TDividend mask = ((TDividend)1U<<bit_count)-1U;
-  uint16_t rem  = (uint16_t)(dividend >> bit_count);
-  return (dividend & mask) | ((TDividend)(rem - divisor) << bit_count);
-}
-
-template <typename TDividend, typename TDivisor>
-static inline TDividend udivCoreProcess1Bit(TDividend dividend, const TDivisor &divisor) {
-  static constexpr uint8_t bit_countMajor = sizeof(TDividend) * CHAR_BIT;
-  static constexpr TDividend carry_mask = (TDividend)1U << (bit_countMajor-1U);
-  const bool carry = dividend & carry_mask;
-  dividend = rotl<TDividend, 1U>(dividend);
-  if (carry || compare_rem_divisor(dividend, divisor)) {
-    dividend = subtract_rem_divisor(dividend, divisor) | (TDividend)1U;
-  }
-  return dividend;
-}
-#endif
-
-template <typename TDividend, typename TDivisor>
-static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
-  static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
-  static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
-  static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must be unsigned");
-
-  static constexpr uint8_t bit_count_divisor = sizeof(TDivisor) * CHAR_BIT;
-
-  if (divisor==0U) { return ((TDividend)1U<<bit_count_divisor)*2-1; }
-
-  TDivisor quot = (TDivisor)dividend;        
-  TDivisor rem  = (TDivisor)(dividend >> bit_count_divisor);  
-
-  for (uint8_t index=0U; index<bit_count_divisor; ++index) {
-    bool carry = rem >> (bit_count_divisor-1U);
-    // (rem:quot) << 1, with carry out
-    rem  = (TDivisor)((rem << 1U) | (quot >> (bit_count_divisor-1U)));
-    quot = (TDivisor)(quot << 1U);
-    // if partial remainder greater or equal to divisor, subtract divisor
-    if (carry || (rem >= divisor)) {
-        rem = (TDivisor)(rem - divisor);
-        quot = quot | 1U;
-    }
-  }
-  return ((TDividend)rem << bit_count_divisor) | (TDividend)quot;
-}
-
-#else
-
 // Process one step in the division algorithm for uint32_t/uint16_t
 static inline uint32_t divide_step(uint32_t dividend, const uint16_t &divisor) {
     asm(
@@ -281,9 +203,6 @@ static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
   }
   return dividend;
 }
-
-#endif
-
 
 /// @brief A verion of abs that handles the edge case of INT(\d*)_MIN without overflow.
 ///
