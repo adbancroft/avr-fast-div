@@ -329,13 +329,6 @@ static inline uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
   return udividend / udivisor;
 }
 
-static inline uint32_t fast_div(uint32_t udividend, uint8_t udivisor) {
-  if (udividend<(uint32_t)UINT16_MAX) {
-    return fast_div((uint16_t)udividend, udivisor);
-  }
-  return udividend / udivisor;
-}
-
 static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   // Use u32/u16=>u16 if possible
   if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
@@ -348,6 +341,10 @@ static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   }  
 #endif   
   return udividend / udivisor;
+}
+
+static inline uint32_t fast_div(uint32_t udividend, uint8_t udivisor) {
+  return fast_div(udividend, (uint16_t)udivisor);
 }
 
 static inline uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {

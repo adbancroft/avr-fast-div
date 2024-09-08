@@ -6,6 +6,21 @@
 #include "test_utils.h"
 #include "index_range_generator.hpp"
 
+
+#if defined(DEBUG)
+template <typename T>
+void dump(const index_range_generator<T> &gen) {
+  Serial.print(gen.rangeMin());
+  Serial.print(", ");
+  Serial.print(gen.rangeMax());
+  Serial.print(", ");
+  Serial.print(gen.step_size());
+  Serial.print(", ");
+  Serial.println(gen.num_steps());
+}
+#endif
+
+
 // The performance tests here focus on the public fast_div() family of functions.
 // The tests either use constrained number ranges to showcase the performance
 // improvement or worst case scenarios to show how minimal the overhead is.
@@ -46,24 +61,11 @@ static void test_fast_div_perf_u16_u8_optimal(void)
 #endif
 }
 
-#if defined(DEBUG)
-template <typename T>
-void dump(const index_range_generator<T> &gen) {
-  Serial.print(gen.rangeMin());
-  Serial.print(", ");
-  Serial.print(gen.rangeMax());
-  Serial.print(", ");
-  Serial.print(gen.step_size());
-  Serial.print(", ");
-  Serial.println(gen.num_steps());
-}
-#endif
-
 static void test_fast_div_perf_u16_u8_worst_case(void)
 {
   // Tests the worst case scenario: none results of u16/u8 fit into a u8
   static constexpr index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX-2U, UINT8_MAX-4U);
-  static constexpr index_range_generator<uint16_t> dividendGen = create_worst_case_dividend_range<uint8_t, uint16_t>(divisorGen, UINT8_MAX+1U);
+  static constexpr index_range_generator<uint32_t> dividendGen = create_worst_case_dividend_range<uint8_t, uint32_t>(divisorGen, UINT32_MAX/10);
 
   static auto nativeTest = [] (uint16_t index, uint32_t &checkSum) { 
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
@@ -84,6 +86,48 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
   auto margin = comparison.timeA.timer.duration_micros()/33U;
 #endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
+}
+
+static void test_fast_div_perf_u32_u8_optimal(void)
+{
+  static constexpr index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX-2U, UINT8_MAX-4U);
+  static constexpr index_range_generator<uint32_t> dividendGen((uint32_t)UINT16_MAX*2ULL, (uint32_t)UINT16_MAX*4ULL, divisorGen.num_steps()); 
+
+  static auto nativeTest = [] (uint16_t index, uint32_t &checkSum) { 
+    checkSum += dividendGen.generate(index) / divisorGen.generate(index);
+  };
+  static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
+    checkSum += fast_div(dividendGen.generate(index), divisorGen.generate(index));
+  };
+  auto comparison = compare_executiontime<uint16_t, uint32_t>(32U, 0U, divisorGen.num_steps(), 1U, nativeTest, optimizedTest);
+  
+  MESSAGE_TIMERS(comparison.timeA.timer, comparison.timeB.timer);
+  TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
+
+#if defined(__AVR__) // We only expect a speed improvement on AVR
+  TEST_ASSERT_LESS_THAN(comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
+#endif
+}
+
+static void test_fast_div_perf_u32_u8_worst_case(void)
+{
+  static constexpr index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX-2U, UINT8_MAX-4U);
+  static constexpr index_range_generator<uint32_t> dividendGen(((uint32_t)UINT16_MAX+2)*6ULL, ((uint32_t)UINT16_MAX+2)*24ULL, divisorGen.num_steps()); 
+
+  static auto nativeTest = [] (uint16_t index, uint32_t &checkSum) { 
+    checkSum += dividendGen.generate(index) / divisorGen.generate(index);
+  };
+  static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
+    checkSum += fast_div(dividendGen.generate(index), divisorGen.generate(index));
+  };
+  auto comparison = compare_executiontime<uint16_t, uint32_t>(32U, 0U, divisorGen.num_steps(), 1U, nativeTest, optimizedTest);
+  
+  MESSAGE_TIMERS(comparison.timeA.timer, comparison.timeB.timer);
+  TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
+
+#if defined(__AVR__) // We only expect a speed improvement on AVR
+  TEST_ASSERT_LESS_THAN(comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
+#endif
 }
 
 static void test_fast_div_perf_u32_u16_optimal(void)
@@ -248,6 +292,8 @@ void test_fast_div_performance(void) {
       RUN_TEST(test_fast_div_perf_u16_u8_optimal);
       RUN_TEST(test_fast_div_perf_u16_u8_worst_case);
       RUN_TEST(test_fast_div_perf_u16_u16);
+      RUN_TEST(test_fast_div_perf_u32_u8_optimal);
+      RUN_TEST(test_fast_div_perf_u32_u8_worst_case);
       RUN_TEST(test_fast_div_perf_u32_u16_optimal);
       RUN_TEST(test_fast_div_perf_u32_u16_worst_case);
       RUN_TEST(test_fast_div_perf_u32_u32);
