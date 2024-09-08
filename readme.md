@@ -1,31 +1,34 @@
-# avr-fast-div: optimized integer division for avr-gcc
-Division is a relatively slow operation on all platforms, compared to addition, subrtraction & multiplication. This library provides *up to* 70% improvement in run time division speed on AVR hardware.
+# avr-fast-div: optimized integer division for AVR hardware
+This library provides *up to* 70% improvement in run time division speed on AVR hardware. Exact speedup varies depending on data types & number ranges - see below for details (also see the [unit tests](https://github.com/adbancroft/avr-fast-div/actions/workflows/unit-tests.yml)).
 
-Exact speedup varies depending on data types & number ranges - see below.
-## Summary
-avr-fast-div contains optimizations for these operations:
-1. `uint32_t/uint16_t => uint16_t`
-2. `uint16_t/uint8_t => uint8_t`
-3. `int32_t/int16_t => int16_t` 
-4. `int16_t/int8_t => int8_t`
+As a general guideline, avr-fast-div is applicable to these operations:
+```
+uint32_t/uint16_t
+uint32_t/uint8_t
+int32_t/int16_t
+int32_t/int8_t
+uint16_t/uint8_t
+int16_t/int8_t
+````
+(or other divison operators where the dividend & divisor values fall within the ranges of the types above).
 
-The optimizations are most effective when your number ranges are constrained to much less than the type maximum values. E.g. time in milliseconds will probably be uint32_t (the Arduino `millis()` function return type, max. value 4294967296), but your codebase only needs to track time for 1 hour (max. value 3600000).
+### Constraints
+1. division using a signed type and unsigned type is not supported. E.g. `int16_t/uint16_t` (it's also a recipe for confusion, since C++ converts the signed integer to an unsigned one before doing the division).
+2. There is no 64-bit support
 ## Using the library
-
 ### Installation
 The library is available in both the [Arduino Library](https://www.arduino.cc/reference/en/libraries/avr-fast-div/) and [PlatformIO Library](https://registry.platformio.org/libraries/adbancroft/avr-fast-div) registries. 
 
 The library can also be cloned & included locally or included directly from GitHub (if your tooling supports it). 
-
 ### Code
 1. `#include <avr-fast-div.h>`
-2. Replace all divide operations with a call to fast_div. I.e.
+2. Replace divide operations with a call to fast_div. I.e.
     * `a / b` -> `fast_div(a, b)`
 
 The code base is compatible with all platforms: non-AVR builds compile down to the standard division operator.
 
 **Note:** if the divisor (`b`) is a [compile time constant greater than 8-bits](https://stackoverflow.com/questions/47994933/why-doesnt-gcc-or-clang-on-arm-use-division-by-invariant-integers-using-multip), you probably want to use [libdivide](https://libdivide.com/) instead.
-## Background
+## Details
 Since the AVR architecture has no hardware divider, all run time division is done in software by the compiler emitting a call to one of the division functions (E.g. [__udivmodsi4](https://github.com/gcc-mirror/gcc/blob/cdd5dd2125ca850aa8599f76bed02509590541ef/libgcc/config/avr/lib1funcs.S#L1615)) contained in a [runtime support library](https://gcc.gnu.org/wiki/avr-gcc#Exceptions_to_the_Calling_Convention).
 
 By neccesity, the division functions are optimised for the general case. Combined with integer type promotion, this can result in sub-optimal division speed. E.g.
@@ -38,7 +41,17 @@ By neccesity, the division functions are optimised for the general case. Combine
     // (following C/C++ integer promotion rules)
     // 2. __udivmodsi4() is called to divide (32/32=>32 division)
 
-If the program is using a limited range of [u]int32_t or [u]int16_t, this can be sped up a lot. 
+If the program is using a limited range of `[u]int32_t` or `[u]int16_t`, this can be sped up a lot. 
 
 Specifically, **if the divisor can be contained in a smaller type than the dividend *and* the result will fit into the smaller divisor type then we can halve the time of the division operation.**
 
+Where possible, avr-fast-div will route division operations through functions optimized for the following operations:
+1. `uint32_t/uint16_t => uint16_t`
+2. `uint16_t/uint8_t => uint8_t`
+
+As a result, the optimizations are most effective when the number ranges are constrained to a range smaller than the full integral type min & max values. 
+
+Example
+* An `unsigned long` storing time in milliseconds (the Arduino `millis()` function return type) has a range of 0 to ~1193 **hours**
+* If the code base only tracks time for 1 hour,  the variable is artificially constrained to `[0, 3600000]`
+* Division operations on it can be optimised when the divisor is greater than 64 (since `36000000/65<UINT16_MAX`)
