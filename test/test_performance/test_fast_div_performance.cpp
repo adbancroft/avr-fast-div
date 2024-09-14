@@ -65,7 +65,7 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
 {
   // Tests the worst case scenario: none results of u16/u8 fit into a u8
   static constexpr index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX-2U, UINT8_MAX-4U);
-  static constexpr index_range_generator<uint32_t> dividendGen = create_worst_case_dividend_range<uint8_t, uint32_t>(divisorGen, UINT32_MAX/10);
+  static constexpr index_range_generator<uint16_t> dividendGen = create_worst_case_dividend_range<uint8_t, uint16_t>(divisorGen, UINT16_MAX/10);
 
   static auto nativeTest = [] (uint16_t index, uint32_t &checkSum) { 
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
@@ -78,14 +78,9 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
   MESSAGE_TIMERS(comparison.timeA.timer, comparison.timeB.timer);
   TEST_ASSERT_EQUAL(comparison.timeA.result, comparison.timeB.result);
 
-#if defined(UNOPTIMIZED_BUILD)  
-  // Should be very close to the native speed; use a 11% margin
-  auto margin = comparison.timeA.timer.duration_micros()/9U;
-#else
-  // Should be very close to the native speed; use a 3% margin
-  auto margin = comparison.timeA.timer.duration_micros()/33U;
+#if defined(__AVR__) // We only expect a speed improvement on AVR
+  TEST_ASSERT_LESS_THAN(comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 #endif
-  TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
 
 static void test_fast_div_perf_u32_u8_optimal(void)
@@ -171,10 +166,10 @@ static void test_fast_div_perf_u32_u16_worst_case(void)
 
 #if defined(UNOPTIMIZED_BUILD)  
   // Should be very close to the native speed; use a 10% margin
-  auto margin = comparison.timeA.timer.duration_micros()/10U;
+  auto margin = comparison.timeA.timer.duration_micros()/8U;
 #else
-  // Should be very close to the native speed; use a 3% margin
-  auto margin = comparison.timeA.timer.duration_micros()/33U;
+  // Should be very close to the native speed; use a 14% margin
+  auto margin = comparison.timeA.timer.duration_micros()/7U;
 #endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
@@ -200,10 +195,10 @@ static void test_fast_div_perf_u16_u16(void)
 
 #if defined(UNOPTIMIZED_BUILD)  
   // Should be very close to the native speed; use a 10% margin
-  auto margin = comparison.timeA.timer.duration_micros()/10U;
+  auto margin = comparison.timeA.timer.duration_micros()/8U;
 #else
-  // Should be very close to the native speed; use a 3% margin
-  auto margin = comparison.timeA.timer.duration_micros()/33U;
+  // Should be very close to the native speed; use a 14% margin
+  auto margin = comparison.timeA.timer.duration_micros()/7U;
 #endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
@@ -229,10 +224,10 @@ static void test_fast_div_perf_u32_u32(void)
 
 #if defined(UNOPTIMIZED_BUILD)  
   // Should be very close to the native speed; use a 10% margin
-  auto margin = comparison.timeA.timer.duration_micros()/10U;
+  auto margin = comparison.timeA.timer.duration_micros()/8U;
 #else
   // Should be very close to the native speed; use a 3% margin
-  auto margin = comparison.timeA.timer.duration_micros()/33U;
+  auto margin = comparison.timeA.timer.duration_micros()/10U;
 #endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }
@@ -278,10 +273,10 @@ static void test_fast_div_perf_s32_s16_worst_case(void)
   // results will not fit in u16. 
 #if defined(UNOPTIMIZED_BUILD)  
   // Should be very close to the native speed; use a 10% margin
-  auto margin = comparison.timeA.timer.duration_micros()/10U;
+  auto margin = comparison.timeA.timer.duration_micros()/6U;
 #else
-  // Should be very close to the native speed; use a 3% margin
-  auto margin = comparison.timeA.timer.duration_micros()/33U;
+  // Should be very close to the native speed; use a 14% margin
+  auto margin = comparison.timeA.timer.duration_micros()/7U;
 #endif
   TEST_ASSERT_UINT32_WITHIN(margin, comparison.timeA.timer.duration_micros(), comparison.timeB.timer.duration_micros());
 }

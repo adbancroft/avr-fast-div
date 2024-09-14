@@ -192,11 +192,9 @@ template <typename TDividend, typename TDivisor>
 static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
   static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
   static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
-  static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must be unsigned");
+  static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must half the size of TDividend");
 
   static constexpr uint8_t bit_count = sizeof(TDivisor) * CHAR_BIT;
-
-  if (divisor==0U) { return ((TDividend)1U<<bit_count)*2-1; }
 
   for (uint8_t index=0U; index<bit_count; ++index) {
     dividend = divide_step(dividend, divisor);
@@ -229,11 +227,46 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 
 // Public API
 
+#if !defined(AFD_ZERO_DIVISOR_CHECK)
+/**
+ * @brief Check for zero divisor
+ * 
+ * Defaults to AVR behavior - return zero. However, this macro can
+ * be pre-defined by the host code base if you want different behavior.
+ * E.g. abort(), throw exception 
+ *
+ * @param dividend The dividend (numerator)
+ * @param divisor The divisor (denominator)
+ * @return dividend/divisor
+ */
+#define AFD_ZERO_DIVISOR_CHECK(dividend, divisor) \
+  if ((divisor)==0U) { return 0U; }
+#endif
+
+#if !defined(AFD_DEFENSIVE_CHECKS)
+/**
+ * @brief A single source of truth for the defensive checks in fast_div
+ * 
+ * These are required in order to protect the core implementation funtions
+ * which don't do any defensive checks.
+ * 
+ * @param dividend The dividend (numerator)
+ * @param divisor The divisor (denominator)
+ * @return dividend/divisor
+ */
+#define AFD_DEFENSIVE_CHECKS(dividend, divisor) \
+  AFD_ZERO_DIVISOR_CHECK(dividend, divisor) \
+  if ((dividend)<(divisor)) { return 0U; } \
+  if ((dividend)==(divisor)) { return 1U; }
+#endif
+
 static inline uint8_t fast_div(uint8_t udividend, uint8_t udivisor) {
+  AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   return udividend / udivisor;
 }
 
 static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
+  AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u16/u8=>u8 if possible
   if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
     return optimized_div_impl::divide(udividend, udivisor) & 0x00FFU;
@@ -242,6 +275,7 @@ static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
 }
 
 static inline uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
+  AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   if (udivisor<(uint16_t)UINT8_MAX) {
     return fast_div(udividend, (uint8_t)udivisor);
   }
@@ -249,6 +283,7 @@ static inline uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
 }
 
 static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
+  AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u32/u16=>u16 if possible
   if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
     return optimized_div_impl::divide(udividend, udivisor) & 0x0000FFFFU;
@@ -267,6 +302,7 @@ static inline uint32_t fast_div(uint32_t udividend, uint8_t udivisor) {
 }
 
 static inline uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {
+  AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Shrink to u32/u16=>u32 if possible
   if (udivisor<(uint32_t)UINT16_MAX) {
     return fast_div(udividend, (uint16_t)udivisor);
