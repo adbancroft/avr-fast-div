@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "..\test_utils.h"
+#include "../test_utils.h"
 #include "avr-fast-div.h"
 
 namespace type_traits {
