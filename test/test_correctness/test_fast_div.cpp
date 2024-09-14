@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "test_utils.h"
+#include "..\test_utils.h"
 #include "avr-fast-div.h"
 
 namespace type_traits {
@@ -77,10 +77,10 @@ static void test_fastdiv_range(TDividend divMin, TDividend divMax, TDivisor divi
   // Since abs(INT_MIN) overflows.
   if (is_signed) {
     if (divMin==type_traits::min_value<TDividend>::value) {
-      divMin++;
+      ++divMin;
     }
     if (divisorMin==type_traits::min_value<TDivisor>::value) {
-      divisorMin++;
+      ++divisorMin;
     }
   }
 #if defined(DETAILED_MESSAGES)

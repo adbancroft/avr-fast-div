@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <unity.h>
-#include "test_utils.h"
+#include "..\test_utils.h"
 #include "avr-fast-div.h"
 
 #if defined(__AVR__)
@@ -61,6 +61,11 @@ static void test_udivHiQi2(void)
   assert_udivHiQi2(UINT8_MAX*7-1, 7); 
 }
 
+static void test_divide_sametype(void) {
+
+
+}
+
 #endif
 
 void test_implementation_details(void) {
@@ -68,6 +73,7 @@ void test_implementation_details(void) {
    SET_UNITY_FILENAME() {
         RUN_TEST(test_udivSiHi2);
         RUN_TEST(test_udivHiQi2);
+        RUN_TEST(test_divide_sametype);
     }
 #endif
 }
