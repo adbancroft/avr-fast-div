@@ -67,7 +67,6 @@ static inline R absDelta(const T &min, const T &max) {
 
 template <typename TDividend, typename TDivisor>
 static void test_fastdiv_range(TDividend divMin, TDividend divMax, TDivisor divisorMin, TDivisor divisorMax, bool is_signed) {
-#undef DETAILED_MESSAGES
 
 #if defined(DETAILED_MESSAGES)
   TEST_MESSAGE(__PRETTY_FUNCTION__);
@@ -164,43 +163,73 @@ static void test_type_ranges(void) {
                      type_traits::is_signed<T>::value);
 }
 
-static void test_fast_div_8(void) {
-  // u8/u8
+static void test_fast_div_u8(void) {
   test_type_ranges<uint8_t>();
-  // i8/i8
+}
+static void test_fast_div_s8(void) {
   test_type_ranges<int8_t>();
 }
 
-static void test_fast_div_16(void) {
-  // u16/u16
+static void test_fast_div_8(void) {
+  RUN_TEST(test_fast_div_u8);
+  RUN_TEST(test_fast_div_s8);
+}
+
+static void test_fast_div_u16_u16(void) {
   test_type_ranges<uint16_t>();
-  // i16/i16
+}
+
+static void test_fast_div_s16_s16(void) {
   test_type_ranges<int16_t>();
-  // u16/u8
+}
+
+static void test_fast_div_u16_u8(void) {
   test_type_ranges<uint16_t, uint8_t>();
-  // i16/i8
+}
+
+static void test_fast_div_s16_s8(void) {
   test_type_ranges<int16_t, int8_t>();
 }
 
-static void test_fast_div_32(void) {
-  // u32/u32
+static void test_fast_div_16(void) {
+  RUN_TEST(test_fast_div_u16_u16);
+  RUN_TEST(test_fast_div_s16_s16);
+  RUN_TEST(test_fast_div_u16_u8);
+  RUN_TEST(test_fast_div_s16_s8);
+}
+
+static void test_fast_div_32_32(void) {
   test_type_ranges<uint32_t>();
-  // u32/u16
+}
+static void test_fast_div_32_16(void) {
   test_type_ranges<uint32_t, uint16_t>();
-  // u32/u8
-  test_type_ranges<uint16_t, uint8_t>();
-  // i32/i32
+}
+static void test_fast_div_32_8(void) {
+  test_type_ranges<uint32_t, uint8_t>();
+}
+static void test_fast_div_s32_s32(void) {
   test_type_ranges<int32_t>();
-  // i32/i16
+}
+static void test_fast_div_s32_s16(void) {
   test_type_ranges<int32_t, int16_t>();
-  // i32/i8
+}
+static void test_fast_div_s32_s8(void) {
   test_type_ranges<int32_t, int8_t>();
+}
+
+static void test_fast_div_32(void) {
+  RUN_TEST(test_fast_div_32_32);
+  RUN_TEST(test_fast_div_32_16);
+  RUN_TEST(test_fast_div_32_8);
+  RUN_TEST(test_fast_div_s32_s32);
+  RUN_TEST(test_fast_div_s32_s16);
+  RUN_TEST(test_fast_div_s32_s8); 
 }
 
 void test_fast_div(void) {
     SET_UNITY_FILENAME() {
-        RUN_TEST(test_fast_div_8);
-        RUN_TEST(test_fast_div_16);
-        RUN_TEST(test_fast_div_32);
+        test_fast_div_8();
+        test_fast_div_16();
+        test_fast_div_32();
     }
 }
