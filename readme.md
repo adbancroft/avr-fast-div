@@ -1,5 +1,5 @@
 # avr-fast-div: optimized integer division for AVR hardware
-This library provides *up to* 70% improvement in run time division speed on AVR hardware. Exact speedup varies depending on data types & number ranges - see below for details (also see the [unit tests](https://github.com/adbancroft/avr-fast-div/actions/workflows/unit-tests.yml)).
+This library provides *up to* 60% improvement in run time division speed on AVR hardware. Exact speedup varies depending on data types & number ranges - see below for details (also see the [unit tests](https://github.com/adbancroft/avr-fast-div/actions/workflows/unit-tests.yml)).
 
 As a general guideline, avr-fast-div is applicable to these operations:
 ```
@@ -11,6 +11,8 @@ uint16_t/uint8_t
 int16_t/int8_t
 ````
 (or other divison operators where the dividend & divisor values fall within the ranges of the types above).
+
+**Best practice:** Use the smallest data type that can hold the required integer range & prefer unsigned where possible.   
 
 ### Constraints
 1. division using a signed type and unsigned type is not supported. E.g. `int16_t/uint16_t` (it's also a recipe for confusion, since C++ converts the signed integer to an unsigned one before doing the division).
