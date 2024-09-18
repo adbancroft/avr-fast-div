@@ -46,7 +46,7 @@ static void test_fast_div_perf_u16_u8_optimal(void)
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint8_t percentExpected = 80;
 #else
-  constexpr uint8_t percentExpected = 60;
+  constexpr uint8_t percentExpected = 40;
 #endif 
   performance_test(64, dividendGen, divisorGen, percentExpected);
 }
@@ -58,9 +58,9 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
   index_range_generator<uint16_t> dividendGen(UINT16_MAX/divisorGen.rangeMax()*3, UINT16_MAX, divisorGen.num_steps());
 
 #if defined(UNOPTIMIZED_BUILD)
-  constexpr uint8_t percentExpected = 120;
+  constexpr uint8_t percentExpected = 115;
 #else
-  constexpr uint8_t percentExpected = 121;
+  constexpr uint8_t percentExpected = 110;
 #endif 
   performance_test(32, dividendGen, divisorGen, percentExpected);
 }
@@ -101,7 +101,7 @@ static void test_fast_div_perf_u32_u16_worst_case(void)
 #if defined(UNOPTIMIZED_BUILD)
   constexpr uint8_t percentExpected = 110;
 #else
-  constexpr uint8_t percentExpected = 107;
+  constexpr uint8_t percentExpected = 105;
 #endif 
   performance_test(11, dividendGen, divisorGen, percentExpected);
 }
@@ -112,9 +112,9 @@ static void test_fast_div_perf_u16_u16(void)
   static constexpr index_range_generator<uint16_t> dividendGen(divisorGen.rangeMax()+1U, UINT16_MAX, divisorGen.num_steps());
 
 #if defined(UNOPTIMIZED_BUILD)
-  constexpr uint8_t percentExpected = 105;
+  constexpr uint8_t percentExpected = 65;
 #else
-  constexpr uint8_t percentExpected = 110;
+  constexpr uint8_t percentExpected = 45;
 #endif 
   performance_test(3, dividendGen, divisorGen, percentExpected);
 }
@@ -125,9 +125,9 @@ static void test_fast_div_perf_u32_u32(void)
   static constexpr index_range_generator<uint32_t> dividendGen((UINT32_MAX/33UL)*2ULL, UINT32_MAX, divisorGen.num_steps());
 
 #if defined(UNOPTIMIZED_BUILD)
-  constexpr uint8_t percentExpected = 105;
+  constexpr uint8_t percentExpected = 80;
 #else
-  constexpr uint8_t percentExpected = 110;
+  constexpr uint8_t percentExpected = 75;
 #endif 
   performance_test(1, dividendGen, divisorGen, percentExpected);
 }
@@ -151,9 +151,9 @@ static void test_fast_div_perf_s32_s16_worst_case(void)
   static constexpr index_range_generator<int32_t> dividendGen(divisorGen.rangeMax()*3LL, INT32_MAX/55LL, divisorGen.num_steps());
 
 #if defined(UNOPTIMIZED_BUILD)
-  constexpr uint8_t percentExpected = 110;
+  constexpr uint8_t percentExpected = 60;
 #else
-  constexpr uint8_t percentExpected = 115;
+  constexpr uint8_t percentExpected = 45;
 #endif 
   performance_test(32, dividendGen, divisorGen, percentExpected);
 }

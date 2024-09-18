@@ -112,38 +112,32 @@ namespace type_traits {
 
 // Private to the fast_div() implementation
 namespace optimized_div_impl {
-
+  
 /**
- * @brief Will the result of division fit into the TDivisor type?
+ * @brief Get the width of a type in bits at compile time
  * 
- * @tparam TDividend Dividend type (unsigned) 
- * @tparam TDivisor Divisor type (unsigned)
- * @param dividend The dividend (numerator)
- * @param divisor The divisor (denominator)
- * @return true If the result of dividend/divisor will fit into TDivisor, false otherwise
+ * @tparam T Type to get width of
  */
-template <typename TDividend, typename TDivisor>
-static constexpr inline bool udivResultFitsInDivisor(TDividend dividend, TDivisor divisor) {
-  static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
-  static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
-  return (dividend<=divisor) || divisor>(TDivisor)( dividend >> ((sizeof(TDividend)-sizeof(TDivisor))*8U));
-}
+template <typename T>
+struct bit_width {
+  static constexpr uint8_t value = sizeof(T) * CHAR_BIT;
+};
 
 // Process one step in the division algorithm for uint32_t/uint16_t
 static inline uint32_t divide_step(uint32_t dividend, const uint16_t &divisor) {
     asm(
-        "    lsl  %A0      ; shift\n\t" \
-        "    rol  %B0      ;  rem:quot\n\t" \
-        "    rol  %C0      ;   left\n\t" \
-        "    rol  %D0      ;    by 1\n\t" \
-        "    brcs 1f       ; if carry out, rem > divisor\n\t" \
-        "    cp   %C0, %A1 ; is rem less\n\t" \
-        "    cpc  %D0, %B1 ;  than divisor ?\n\t" \
-        "    brcs 2f       ; yes, when carry out\n\t" \
-        "1:\n\t" \
-        "    sub  %C0, %A1 ; compute\n\t" \
-        "    sbc  %D0, %B1 ;  rem -= divisor\n\t" \
-        "    ori  %A0, 1   ; record quotient bit as 1\n\t" \
+        "    lsl  %A0      ; shift\n\t"
+        "    rol  %B0      ;  rem:quot\n\t"
+        "    rol  %C0      ;   left\n\t"
+        "    rol  %D0      ;    by 1\n\t"
+        "    brcs 1f       ; if carry out, rem > divisor\n\t"
+        "    cp   %C0, %A1 ; is rem less\n\t"
+        "    cpc  %D0, %B1 ;  than divisor ?\n\t"
+        "    brcs 2f       ; yes, when carry out\n\t"
+        "1:\n\t"
+        "    sub  %C0, %A1 ; compute\n\t"
+        "    sbc  %D0, %B1 ;  rem -= divisor\n\t"
+        "    ori  %A0, 1   ; record quotient bit as 1\n\t"
         "2:\n\t"
       : "=d" (dividend) 
       : "d" (divisor) , "0" (dividend)
@@ -155,14 +149,14 @@ static inline uint32_t divide_step(uint32_t dividend, const uint16_t &divisor) {
 // Process one step in the division algorithm for uint16_t/uint8_t
 static inline uint16_t divide_step(uint16_t dividend, const uint8_t &divisor) {
     asm(
-        "    lsl  %A0      ; shift\n\t" \
-        "    rol  %B0      ;  rem:quot\n\t" \
-        "    brcs 1f       ; if carry out, rem > divisor\n\t" \
-        "    cpc  %B0, %A1 ; is rem less than divisor?\n\t" \
-        "    brcs 2f       ; yes, when carry out\n\t" \
-        "1:\n\t" \
-        "    sub  %B0, %A1 ; compute rem -= divisor\n\t" \
-        "    ori  %A0, 1   ; record quotient bit as 1\n\t" \
+        "    lsl  %A0      ; shift\n\t"
+        "    rol  %B0      ;  rem:quot\n\t"
+        "    brcs 1f       ; if carry out, rem > divisor\n\t"
+        "    cpc  %B0, %A1 ; is rem less than divisor?\n\t"
+        "    brcs 2f       ; yes, when carry out\n\t"
+        "1:\n\t"
+        "    sub  %B0, %A1 ; compute rem -= divisor\n\t"
+        "    ori  %A0, 1   ; record quotient bit as 1\n\t"
         "2:\n\t"
       : "=d" (dividend) 
       : "d" (divisor) , "0" (dividend) 
@@ -194,12 +188,91 @@ static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
   static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
   static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must half the size of TDividend");
 
-  static constexpr uint8_t bit_count = sizeof(TDivisor) * CHAR_BIT;
-
-  for (uint8_t index=0U; index<bit_count; ++index) {
+  for (uint8_t index=0U; index<bit_width<TDivisor>::value; ++index) {
     dividend = divide_step(dividend, divisor);
   }
   return dividend;
+}
+
+template <typename T>
+static inline bool is_aligned(const T &reference, const T &dependent) {
+  static constexpr T max_bit = (T)1U << (bit_width<T>::value-1U);
+  return ((T)(dependent<<(T)1U) > reference) || (dependent & max_bit);
+}
+
+/**
+ * @brief Left aligns the highest set bit of the dependent with the
+ * highest set bit of the reference
+ *
+ * *Note* modifies parameter "dependent"
+ *  
+ * @param reference 
+ * @param dependent 
+ * @return T A flag with a single bit set at the aligned bit 
+ */
+template <typename T>
+static inline T align(const T &reference, T &dependent) {
+
+  T bit = 1;
+  while (!is_aligned(reference, dependent))
+  {
+    dependent = (T)(dependent<<1U);
+    bit = (T)(bit<<1U);
+  }
+  return bit;
+}
+
+template <typename T>
+static constexpr inline T get_large_divisor_threshhold(void) {
+  // This is just the ?INT_MAX of the next smaller integer type.
+  // E.g. if T==uint32_t, this returns UINT16_MAX
+  return (T)(((T)1U << (bit_width<T>::value/2))-1U);
+}
+
+/**
+ * @brief A division function, applicable when the divisor is large
+ * 
+ * This function will work for all combinations of dividend & divisor, but only
+ * apply it when the divisor is large. I.e. >sqrt(max(dividend)).
+ * 
+ * In this situation, on aggregate it's quicker to align the dividend with the divisor
+ * and then divide rather than call the standard divide operator.
+ * 
+ * @tparam T 
+ * @param udividend 
+ * @param udivisor 
+ * @return T 
+ */
+template <typename T>
+static inline T divide_large_divisor(T udividend, T udivisor) {
+  static_assert(type_traits::is_unsigned<T>::value, "T must be unsigned");
+
+#if defined(UNIT_TEST)
+  // constexpr T threshold = ;
+  if (udivisor<=get_large_divisor_threshhold<T>()) { 
+    return 0;
+  }
+#endif
+
+  T bit = align(udividend, udivisor);
+
+  // align() guarentees that udivisor<udividend
+  udividend = (T)(udividend-udivisor);
+  T res = bit;
+  bit = (T)(bit>>1U);
+  udivisor = (T)(udivisor>>1U);
+
+  while (bit)
+  {
+    if (udividend >= udivisor)
+    {
+        udividend = (T)(udividend-udivisor);
+        res = (T)(res|bit);
+    }
+    bit = (T)(bit>>1U);
+    udivisor = (T)(udivisor>>1U);
+  }
+  return res;
 }
 
 /// @brief A verion of abs that handles the edge case of INT(\d*)_MIN without overflow.
@@ -262,38 +335,48 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 
 static inline uint8_t fast_div(uint8_t udividend, uint8_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
+  // u8/u8 => u8
   return udividend / udivisor;
 }
 
 static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u16/u8=>u8 if possible
-  if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
+  if (udivisor > (uint8_t)(udividend >> 8U)) {
     return optimized_div_impl::divide(udividend, udivisor) & 0x00FFU;
   } 
+  // We now know:
+  //    (udividend >= (udivisor * 255U))
+  // && (udivisor<255U)
+
+  // u16/u16=>u16
   return udividend / udivisor;
 }
 
 static inline uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
-  if (udivisor<(uint16_t)UINT8_MAX) {
+  if (udivisor<=(uint16_t)UINT8_MAX) {
     return fast_div(udividend, (uint8_t)udivisor);
   }
-  return udividend / udivisor;
+  // We now know that udivisor > 255U. I.e. upper word bits are set
+  // u16/u16=>u16
+  return optimized_div_impl::divide_large_divisor(udividend, udivisor);
 }
 
 static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u32/u16=>u16 if possible
-  if (optimized_div_impl::udivResultFitsInDivisor(udividend, udivisor)) {
+  if (udivisor > (uint16_t)(udividend >> 16U)) {
     return optimized_div_impl::divide(udividend, udivisor) & 0x0000FFFFU;
-  } 
+  }
 // Fallback to 24-bit if supported
 #if defined(__UINT24_MAX__)
   if((udividend<__UINT24_MAX__)) {
     return (__uint24)udividend / (__uint24)udivisor;
   }  
-#endif   
+#endif    
+  // We now know that udividend > udivisor * 65536U
+  // u32/u32=>u32
   return udividend / udivisor;
 }
 
@@ -304,7 +387,7 @@ static inline uint32_t fast_div(uint32_t udividend, uint8_t udivisor) {
 static inline uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Shrink to u32/u16=>u32 if possible
-  if (udivisor<(uint32_t)UINT16_MAX) {
+  if (udivisor<=(uint32_t)UINT16_MAX) {
     return fast_div(udividend, (uint16_t)udivisor);
   }
 // Fallback to 24-bit if supported
@@ -313,7 +396,9 @@ static inline uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {
     return (__uint24)udividend / (__uint24)udivisor;
   }  
 #endif  
-  return udividend / udivisor;
+  // We now know that udivisor > 65535U. I.e. upper word bits are set
+  // u32/u32=>u32
+  return optimized_div_impl::divide_large_divisor<uint32_t>(udividend, udivisor);
 }
 
 // Overload for all signed types
