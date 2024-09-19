@@ -33,7 +33,7 @@ static void test_divide_optimised_u32u16_vs_u32u32_perf(void)
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
   };
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
-    checkSum += optimized_div_impl::divide<uint32_t, uint16_t>(dividendGen.generate(index), divisorGen.generate(index)) & 0x0000FFFFU;
+    checkSum += avr_fast_div_impl::divide<uint32_t, uint16_t>(dividendGen.generate(index), divisorGen.generate(index)) & 0x0000FFFFU;
   };
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint16_t percentExpected = 55;
@@ -53,7 +53,7 @@ static void test_divide_optimisedu16u8_vs_u16u16_perf(void)
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
   };
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
-    checkSum += optimized_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
+    checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
   };
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint16_t percentExpected = 70;
@@ -70,10 +70,10 @@ static void test_divide_optimised16u8_vs_divide_optimisedu32u16_perf(void)
   static constexpr index_range_generator<uint16_t> dividendGen = create_optimal_dividend_range<uint8_t, uint16_t>(divisorGen); 
 
   static auto u3216Test = [] (uint16_t index, uint32_t &checkSum) { 
-    checkSum += optimized_div_impl::divide((uint32_t)dividendGen.generate(index), (uint16_t)divisorGen.generate(index)) & 0x0000FFFFU;
+    checkSum += avr_fast_div_impl::divide((uint32_t)dividendGen.generate(index), (uint16_t)divisorGen.generate(index)) & 0x0000FFFFU;
   };
   static auto u16u8Test = [] (uint16_t index, uint32_t &checkSum) {
-    checkSum += optimized_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
+    checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
   };
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint16_t percentExpected = 55;
@@ -92,7 +92,7 @@ static void test_divide_large_divisor16u16_vs_u16u16_perf(void)
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
   };
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
-    checkSum += optimized_div_impl::divide_large_divisor<uint16_t>(dividendGen.generate(index), divisorGen.generate(index));
+    checkSum += avr_fast_div_impl::divide_large_divisor<uint16_t>(dividendGen.generate(index), divisorGen.generate(index));
   };
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint16_t percentExpected = 75;
@@ -111,7 +111,7 @@ static void test_divide_large_divisor32u32_vs_u32u32_perf(void)
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
   };
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
-    checkSum += optimized_div_impl::divide_large_divisor<uint32_t>(dividendGen.generate(index), divisorGen.generate(index));
+    checkSum += avr_fast_div_impl::divide_large_divisor<uint32_t>(dividendGen.generate(index), divisorGen.generate(index));
   };
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint16_t percentExpected = 55;

@@ -111,7 +111,7 @@ namespace type_traits {
 #if defined(USE_OPTIMIZED_DIV)
 
 // Private to the fast_div() implementation
-namespace optimized_div_impl {
+namespace avr_fast_div_impl {
   
 /**
  * @brief Get the width of a type in bits at compile time
@@ -343,7 +343,7 @@ static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u16/u8=>u8 if possible
   if (udivisor > (uint8_t)(udividend >> 8U)) {
-    return optimized_div_impl::divide(udividend, udivisor) & 0x00FFU;
+    return avr_fast_div_impl::divide(udividend, udivisor) & 0x00FFU;
   } 
   // We now know:
   //    (udividend >= (udivisor * 255U))
@@ -360,14 +360,14 @@ static inline uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
   }
   // We now know that udivisor > 255U. I.e. upper word bits are set
   // u16/u16=>u16
-  return optimized_div_impl::divide_large_divisor(udividend, udivisor);
+  return avr_fast_div_impl::divide_large_divisor(udividend, udivisor);
 }
 
 static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u32/u16=>u16 if possible
   if (udivisor > (uint16_t)(udividend >> 16U)) {
-    return optimized_div_impl::divide(udividend, udivisor) & 0x0000FFFFU;
+    return avr_fast_div_impl::divide(udividend, udivisor) & 0x0000FFFFU;
   }
 // Fallback to 24-bit if supported
 #if defined(__UINT24_MAX__)
@@ -398,7 +398,7 @@ static inline uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {
 #endif  
   // We now know that udivisor > 65535U. I.e. upper word bits are set
   // u32/u32=>u32
-  return optimized_div_impl::divide_large_divisor<uint32_t>(udividend, udivisor);
+  return avr_fast_div_impl::divide_large_divisor<uint32_t>(udividend, udivisor);
 }
 
 // Overload for all signed types
@@ -416,9 +416,9 @@ static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
 
   // Convert to unsigned.
   using udividend_t = type_traits::make_unsigned_t<TDividend>;
-  udividend_t udividend = optimized_div_impl::safe_abs(dividend);
+  udividend_t udividend = avr_fast_div_impl::safe_abs(dividend);
   using udivisor_t = type_traits::make_unsigned_t<TDivisor>;
-  udivisor_t udivisor = optimized_div_impl::safe_abs(divisor);
+  udivisor_t udivisor = avr_fast_div_impl::safe_abs(divisor);
 
   // Call the overload specialized for the unsigned type (above) - these are optimized.
   udividend_t uresult = fast_div(udividend, udivisor);

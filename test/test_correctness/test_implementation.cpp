@@ -11,7 +11,7 @@ static constexpr uint32_t MICROS_PER_HOUR = MICROS_PER_MIN*60U;
 
 static void assert_divide_u32u16(uint32_t dividend, uint16_t divisor) {
     auto native = ldiv(dividend, divisor);
-    auto optimised = optimized_div_impl::divide<uint32_t, uint16_t>(dividend, divisor);
+    auto optimised = avr_fast_div_impl::divide<uint32_t, uint16_t>(dividend, divisor);
     char msgBuffer[128];
     sprintf(msgBuffer, "%" PRIu32 ", %" PRIu16, dividend, divisor);
     TEST_ASSERT_EQUAL_UINT32_MESSAGE(native.quot, optimised & 0x0000FFFFU, msgBuffer);
@@ -36,7 +36,7 @@ static void test_divide_u32u16(void)
 
 static void assert_divide_u16u8(uint16_t dividend, uint8_t divisor) {
   auto native = div(dividend, divisor);
-  auto optimised = optimized_div_impl::divide<uint16_t, uint8_t>(dividend, divisor);
+  auto optimised = avr_fast_div_impl::divide<uint16_t, uint8_t>(dividend, divisor);
   char msgBuffer[128];
   sprintf(msgBuffer, "%" PRIu16 ", %" PRIu8, dividend, divisor);
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(native.quot, optimised & 0x00FFU, msgBuffer);
@@ -65,7 +65,7 @@ static void test_divide_u16u8(void)
 template <typename T>
 static void assert_divide_large_divisor(T dividend, T divisor) {
   auto native = dividend / divisor;
-  auto optimised = optimized_div_impl::divide_large_divisor(dividend, divisor);
+  auto optimised = avr_fast_div_impl::divide_large_divisor(dividend, divisor);
   char msgBuffer[128];
   sprintf(msgBuffer, "%" PRIu32", %" PRIu32, (uint32_t)dividend, (uint32_t)divisor);
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(native, optimised, msgBuffer);
@@ -73,28 +73,28 @@ static void assert_divide_large_divisor(T dividend, T divisor) {
 
 
 static void test_divide_large_divisor_u32u32(void) {
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint32_t>(UINT32_MAX, 1), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint32_t>(UINT32_MAX, UINT8_MAX), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint32_t>(UINT32_MAX, UINT16_MAX), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint32_t>(UINT32_MAX, 1), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint32_t>(UINT32_MAX, UINT8_MAX), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint32_t>(UINT32_MAX, UINT16_MAX), 0);
   assert_divide_large_divisor<uint32_t>(UINT32_MAX, UINT16_MAX+1UL);
   assert_divide_large_divisor<uint32_t>(UINT32_MAX, UINT32_MAX/2U);
   assert_divide_large_divisor<uint32_t>(UINT32_MAX, UINT32_MAX);
 
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint32_t>(UINT16_MAX, 1), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint32_t>(UINT16_MAX, UINT16_MAX-1U), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint32_t>(UINT16_MAX, UINT16_MAX), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint32_t>(UINT16_MAX, 1), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint32_t>(UINT16_MAX, UINT16_MAX-1U), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint32_t>(UINT16_MAX, UINT16_MAX), 0);
 }
 
 static void test_divide_large_divisor_u16u16(void) {
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint16_t>(UINT16_MAX, 1), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint16_t>(UINT16_MAX, UINT8_MAX), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint16_t>(UINT16_MAX, 1), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint16_t>(UINT16_MAX, UINT8_MAX), 0);
   assert_divide_large_divisor<uint16_t>(UINT16_MAX, UINT8_MAX+1UL);
   assert_divide_large_divisor<uint16_t>(UINT16_MAX, UINT16_MAX/2);
   assert_divide_large_divisor<uint16_t>(UINT16_MAX, UINT16_MAX);
 
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint16_t>(UINT8_MAX, 1), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint16_t>(UINT8_MAX, UINT8_MAX-1U), 0);
-  TEST_ASSERT_EQUAL_UINT32(optimized_div_impl::divide_large_divisor<uint16_t>(UINT8_MAX, UINT8_MAX), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint16_t>(UINT8_MAX, 1), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint16_t>(UINT8_MAX, UINT8_MAX-1U), 0);
+  TEST_ASSERT_EQUAL_UINT32(avr_fast_div_impl::divide_large_divisor<uint16_t>(UINT8_MAX, UINT8_MAX), 0);
 }
 #endif
 
