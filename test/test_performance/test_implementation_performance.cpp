@@ -33,7 +33,7 @@ static void test_divide_optimised_u32u16_vs_u32u32_perf(void)
     checkSum += dividendGen.generate(index) / divisorGen.generate(index);
   };
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
-    checkSum += avr_fast_div_impl::divide<uint32_t, uint16_t>(dividendGen.generate(index), divisorGen.generate(index)) & 0x0000FFFFU;
+    checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x0000FFFFU;
   };
 #if defined(UNOPTIMIZED_BUILD)  
   constexpr uint16_t percentExpected = 55;

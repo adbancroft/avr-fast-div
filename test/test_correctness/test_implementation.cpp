@@ -10,12 +10,11 @@ static constexpr uint32_t MICROS_PER_MIN = MICROS_PER_SEC*60U;
 static constexpr uint32_t MICROS_PER_HOUR = MICROS_PER_MIN*60U;
 
 static void assert_divide_u32u16(uint32_t dividend, uint16_t divisor) {
-    auto native = ldiv(dividend, divisor);
-    auto optimised = avr_fast_div_impl::divide<uint32_t, uint16_t>(dividend, divisor);
+    auto native = dividend / divisor;
+    uint16_t optimised = avr_fast_div_impl::divide(dividend, divisor);
     char msgBuffer[128];
-    sprintf(msgBuffer, "%" PRIu32 ", %" PRIu16, dividend, divisor);
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(native.quot, optimised & 0x0000FFFFU, msgBuffer);
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(native.rem, (uint16_t)(optimised >> 16U), msgBuffer);
+    sprintf(msgBuffer, "%" PRIu32 ", %" PRIu32, (uint32_t)dividend, (uint32_t)divisor);
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE(native, optimised, msgBuffer);
 }
 
 static void test_divide_u32u16(void)
@@ -35,12 +34,11 @@ static void test_divide_u32u16(void)
 }
 
 static void assert_divide_u16u8(uint16_t dividend, uint8_t divisor) {
-  auto native = div(dividend, divisor);
-  auto optimised = avr_fast_div_impl::divide<uint16_t, uint8_t>(dividend, divisor);
+  auto native = dividend / divisor;
+  auto optimised = avr_fast_div_impl::divide(dividend, divisor);
   char msgBuffer[128];
   sprintf(msgBuffer, "%" PRIu16 ", %" PRIu8, dividend, divisor);
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(native.quot, optimised & 0x00FFU, msgBuffer);
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(native.rem, (uint16_t)(optimised >> 8U), msgBuffer);
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(native, optimised, msgBuffer);
 }
 
 static void test_divide_u16u8(void)

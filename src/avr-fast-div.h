@@ -183,7 +183,7 @@ static inline uint16_t divide_step(uint16_t dividend, const uint8_t &divisor) {
  * @return dividend/divisor 
  */
 template <typename TDividend, typename TDivisor>
-static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
+static inline TDivisor divide(TDividend dividend, const TDivisor &divisor) {
   static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
   static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
   static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must half the size of TDividend");
@@ -191,7 +191,8 @@ static inline TDividend divide(TDividend dividend, const TDivisor &divisor) {
   for (uint8_t index=0U; index<bit_width<TDivisor>::value; ++index) {
     dividend = divide_step(dividend, divisor);
   }
-  return dividend;
+  // Lower word contains the quotient, upper word contains the remainder
+  return (TDivisor)dividend;
 }
 
 template <typename T>
@@ -343,7 +344,7 @@ static inline uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u16/u8=>u8 if possible
   if (udivisor > (uint8_t)(udividend >> 8U)) {
-    return avr_fast_div_impl::divide(udividend, udivisor) & 0x00FFU;
+    return avr_fast_div_impl::divide(udividend, udivisor);
   } 
   // We now know:
   //    (udividend >= (udivisor * 255U))
@@ -367,7 +368,7 @@ static inline uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   AFD_DEFENSIVE_CHECKS(udividend, udivisor);
   // Use u32/u16=>u16 if possible
   if (udivisor > (uint16_t)(udividend >> 16U)) {
-    return avr_fast_div_impl::divide(udividend, udivisor) & 0x0000FFFFU;
+    return avr_fast_div_impl::divide(udividend, udivisor);
   }
 // Fallback to 24-bit if supported
 #if defined(__UINT24_MAX__)
