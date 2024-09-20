@@ -42,7 +42,7 @@ void setup() {
   Serial.println(msg);
   sprintf(msg, "Div Duration: %" PRIu32 ", FastDiv Duration: %" PRIu32, divDuration, fastdivDuration);
   Serial.println(msg);
-  uint16_t percentDelta = fastdivDuration * 100U / divDuration;
+  uint16_t percentDelta = (uint16_t)(fastdivDuration * 100U / divDuration);
   sprintf(msg, "fast_div() took %" PRIu16 "%% less time than the division operator", 100-percentDelta);
   Serial.println(msg);
 }
