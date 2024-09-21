@@ -10,11 +10,16 @@ static constexpr uint32_t MICROS_PER_MIN = MICROS_PER_SEC*60U;
 static constexpr uint32_t MICROS_PER_HOUR = MICROS_PER_MIN*60U;
 
 static void assert_divide_u32u16(uint32_t dividend, uint16_t divisor) {
-    auto native = dividend / divisor;
-    uint16_t optimised = avr_fast_div_impl::divide(dividend, divisor);
-    char msgBuffer[128];
-    sprintf(msgBuffer, "%" PRIu32 ", %" PRIu32, (uint32_t)dividend, (uint32_t)divisor);
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE(native, optimised, msgBuffer);
+  char msgBuffer[128];
+  sprintf(msgBuffer, "%" PRIu32 ", %" PRIu32, (uint32_t)dividend, (uint32_t)divisor);
+
+  // This is here to prevent a bad test: the implementation doesn't handle the
+  // case where the quotient doesn't fit into a uint16_t
+  TEST_ASSERT_GREATER_THAN_MESSAGE((uint16_t)(dividend >> 16U), divisor, msgBuffer);
+
+  auto native = dividend / divisor;
+  uint16_t optimised = avr_fast_div_impl::divide(dividend, divisor);
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(native, optimised, msgBuffer);
 }
 
 static void test_divide_u32u16(void)
@@ -34,20 +39,25 @@ static void test_divide_u32u16(void)
 }
 
 static void assert_divide_u16u8(uint16_t dividend, uint8_t divisor) {
-  auto native = dividend / divisor;
-  auto optimised = avr_fast_div_impl::divide(dividend, divisor);
   char msgBuffer[128];
   sprintf(msgBuffer, "%" PRIu16 ", %" PRIu8, dividend, divisor);
+
+  // This is here to prevent a bad test: the implementation doesn't handle the
+  // case where the quotient doesn't fit into a uint16_t
+  TEST_ASSERT_GREATER_THAN_MESSAGE((uint8_t)(dividend >> 8U), divisor, msgBuffer);
+
+  auto native = dividend / divisor;
+  auto optimised = avr_fast_div_impl::divide(dividend, divisor);
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(native, optimised, msgBuffer);
 }
 
 static void test_divide_u16u8(void)
 {
-  assert_divide_u32u16(1, 1);
-  assert_divide_u32u16(UINT16_MAX, 1);
-  assert_divide_u32u16(UINT16_MAX, UINT16_MAX);
-  assert_divide_u32u16(UINT16_MAX, UINT8_MAX);
-  assert_divide_u16u8(UINT8_MAX+1, UINT8_MAX);
+  assert_divide_u16u8(1, 1);
+  // assert_divide_u16u8(UINT16_MAX, 1);
+  // assert_divide_u16u8(UINT16_MAX, UINT16_MAX);
+  // assert_divide_u16u8(UINT16_MAX, UINT8_MAX);
+  assert_divide_u16u8((uint16_t)UINT8_MAX+1U, UINT8_MAX);
   assert_divide_u16u8(UINT8_MAX-1, UINT8_MAX);
 
   // Below are from an idle target table in a real tune
