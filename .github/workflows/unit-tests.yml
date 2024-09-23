@@ -48,3 +48,9 @@ jobs:
         pio test -v -e megaatmega2560-GitHubUnitTest-Os -e megaatmega2560-GitHubUnitTest-O3 --without-uploading
       env:
         PLATFORMIO_BUILD_FLAGS: -D EXTENDED_TEST_LEVEL=111
+        
+    - name: Run Unit Tests Small Text
+      run: | 
+        pio test -v -e megaatmega2560-GitHubUnitTest-Os -e megaatmega2560-GitHubUnitTest-O3 --without-uploading
+      env:
+        PLATFORMIO_BUILD_FLAGS: -D AFD_SMALL_TEXT

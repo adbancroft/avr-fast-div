@@ -44,3 +44,5 @@ void loop()
     digitalWrite(LED_BUILTIN, LOW);
     delay(250);
 }
+
+#include "avr-fast-div.cpp"

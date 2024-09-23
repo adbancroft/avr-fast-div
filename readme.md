@@ -30,6 +30,8 @@ The library can also be cloned & included locally or included directly from GitH
 The code base is compatible with all platforms: non-AVR builds compile down to the standard division operator.
 
 **Note:** if the divisor (`b`) is a [compile time constant greater than 8-bits](https://stackoverflow.com/questions/47994933/why-doesnt-gcc-or-clang-on-arm-use-division-by-invariant-integers-using-multip), you probably want to use [libdivide](https://libdivide.com/) instead.
+
+You can reduce the amount of flash (.text segment) the library uses by defining `AFD_SMALL_TEXT`: this will reduce performance by up to 5% in some cases.
 ## Details
 Since the AVR architecture has no hardware divider, all run time division is done in software by the compiler emitting a call to one of the division functions (E.g. [__udivmodsi4](https://github.com/gcc-mirror/gcc/blob/cdd5dd2125ca850aa8599f76bed02509590541ef/libgcc/config/avr/lib1funcs.S#L1615)) contained in a [runtime support library](https://gcc.gnu.org/wiki/avr-gcc#Exceptions_to_the_Calling_Convention).
 

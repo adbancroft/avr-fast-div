@@ -5,6 +5,7 @@
 #include "../unity_print_timers.hpp"
 #include "../test_utils.h"
 #include "performance_test.h"
+#include "afd_implementation.hpp"
 
 // The performance tests here focus on the internal optimized division functions.
 // The tests use highly constrained number ranges to avoid overflow.
@@ -76,7 +77,7 @@ static void test_divide_optimised16u8_vs_divide_optimisedu32u16_perf(void)
     checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
   };
 #if defined(UNOPTIMIZED_BUILD)  
-  constexpr uint16_t percentExpected = 55;
+  constexpr uint16_t percentExpected = 60;
 #else
   constexpr uint16_t percentExpected = 40;
 #endif    
@@ -95,9 +96,9 @@ static void test_divide_large_divisor16u16_vs_u16u16_perf(void)
     checkSum += avr_fast_div_impl::divide_large_divisor<uint16_t>(dividendGen.generate(index), divisorGen.generate(index));
   };
 #if defined(UNOPTIMIZED_BUILD)  
-  constexpr uint16_t percentExpected = 75;
+  constexpr uint16_t percentExpected = 65;
 #else
-  constexpr uint16_t percentExpected = 75;
+  constexpr uint16_t percentExpected = 45;
 #endif  
   performance_test(32U, dividendGen, divisorGen, nativeTest, optimizedTest, percentExpected); 
 }
@@ -114,9 +115,9 @@ static void test_divide_large_divisor32u32_vs_u32u32_perf(void)
     checkSum += avr_fast_div_impl::divide_large_divisor<uint32_t>(dividendGen.generate(index), divisorGen.generate(index));
   };
 #if defined(UNOPTIMIZED_BUILD)  
-  constexpr uint16_t percentExpected = 55;
+  constexpr uint16_t percentExpected = 50;
 #else
-  constexpr uint16_t percentExpected = 30;
+  constexpr uint16_t percentExpected = 20;
 #endif  
   performance_test(16U, dividendGen, divisorGen, nativeTest, optimizedTest, percentExpected); 
 }

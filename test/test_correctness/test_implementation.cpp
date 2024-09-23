@@ -2,6 +2,7 @@
 #include <unity.h>
 #include "../test_utils.h"
 #include "avr-fast-div.h"
+#include "afd_implementation.hpp"
 
 #if defined(__AVR__)
 
