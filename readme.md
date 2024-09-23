@@ -1,3 +1,6 @@
+![Build](https://github.com/adbancroft/avr-fast-div/actions/workflows/build.yml/badge.svg)
+![Build](https://github.com/adbancroft/avr-fast-div/actions/workflows/unit-tests.yml/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=adbancroft_avr-fast-div&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=adbancroft_avr-fast-div) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=adbancroft_avr-fast-div&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=adbancroft_avr-fast-div)
 # avr-fast-div: optimized integer division for AVR hardware
 This library provides *up to* 60% improvement in run time division speed on AVR hardware. Exact speedup varies depending on data types & number ranges - see below for details (also see the [unit tests](https://github.com/adbancroft/avr-fast-div/actions/workflows/unit-tests.yml)).
 
