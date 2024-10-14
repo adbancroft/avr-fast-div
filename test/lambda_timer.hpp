@@ -47,17 +47,5 @@ comparative_execution_times<TParam> compare_executiontime(uint16_t iterations, T
 
 template <typename TLoop, typename TParam>
 comparative_execution_times<TParam> compare_executiontime(TLoop from, TLoop to, TLoop step, void (*pTestFunA)(TLoop, TParam&), void (*pTestFunB)(TLoop, TParam&)) {
-
-    simple_timer_t timerA;
-    TParam paramA = 0;
-    measure_executiontime<TLoop, TParam&>(1U, from, to, step, timerA, paramA, pTestFunA);
-
-    simple_timer_t timerB;
-    TParam paramB = 0;
-    measure_executiontime<TLoop, TParam&>(1U, from, to, step, timerB, paramB, pTestFunB);
-
-    return comparative_execution_times<TParam> {
-        .timeA = execution_time<TParam> { .result = paramA, .timer = timerA },
-        .timeB = execution_time<TParam> { .result = paramB, .timer = timerB }
-    };
+    return compare_executiontime<TLoop, TParam>(1U, from, to, step, pTestFunA, pTestFunB);
 }
