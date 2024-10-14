@@ -2,11 +2,9 @@ name: Unit Tests
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+  # Triggers the workflow on push or pull request events 
   push:
-    branches: [ master ]
   pull_request:
-    branches: [ master ]
     
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -40,17 +38,15 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade platformio
-        sudo apt update
-        sudo apt-get install -y simavr
 
     - name: Run Unit Tests
       run: | 
-        pio test -v -e megaatmega2560-GitHubUnitTest-Os -e megaatmega2560-GitHubUnitTest-O3 --without-uploading
+        pio test -v -e megaatmega2560-Os-sim -e megaatmega2560-O3-sim
       env:
         PLATFORMIO_BUILD_FLAGS: -D EXTENDED_TEST_LEVEL=111
         
     - name: Run Unit Tests Small Text
       run: | 
-        pio test -v -e megaatmega2560-GitHubUnitTest-Os -e megaatmega2560-GitHubUnitTest-O3 --without-uploading
+        pio test -v -e megaatmega2560-Os-sim -e megaatmega2560-O3-sim
       env:
         PLATFORMIO_BUILD_FLAGS: -D AFD_SMALL_TEXT
