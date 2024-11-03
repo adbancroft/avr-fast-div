@@ -62,7 +62,7 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 
 /// @brief Optimized division of a 16-bit unsigned by a 8-bit unsigned with an *8-bit unsigned result*
 ///
-/// @warning Should only be called if it's known that the result will fit into 8-bits
+/// @warning Unlike fast_div(), this should only be called when it's known that the result will fit into 8-bits
 ///
 /// @param udividend Dividend
 /// @param udivisor Divisor
@@ -71,13 +71,17 @@ uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor);
 
 /// @brief Optimized division of a 32-bit unsigned by a 16-bit unsigned with a *16-bit unsigned result*
 ///
-/// @warning Should only be called if it's known that the result will fit into 16-bits
+/// @warning Unlike fast_div(), this should only be called when it's known that the result will fit into 16-bits
 ///
 /// @param udividend Dividend
 /// @param udivisor Divisor
 /// @return udividend/udivisor
 uint16_t fast_div32_16(uint32_t udividend, uint16_t udivisor);
 
+/// @defgroup group-fast-div-overloads Replacements for the division operator
+/// @{
+
+// Unsigned overloads
 uint8_t  fast_div(uint8_t  udividend, uint8_t  udivisor);
 uint16_t fast_div(uint16_t udividend, uint8_t  udivisor);
 uint16_t fast_div(uint16_t udividend, uint16_t udivisor);
@@ -114,12 +118,20 @@ static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
   return uresult;
 }
 
+/// @}
+
 #else
 
 // Non-AVR platforms just fallback to standard div operator
 template <typename TDividend, typename TDivisor>
 static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
   return dividend / divisor;
+}
+static inline uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor) {
+  return (uint8_t)(udividend / udivisor);
+}
+static inline uint16_t fast_div32_16(uint32_t udividend, uint16_t udivisor) {
+  return (uint16_t)(udividend / udivisor);
 }
 
 #endif

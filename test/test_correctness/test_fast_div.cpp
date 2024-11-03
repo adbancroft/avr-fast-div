@@ -184,7 +184,13 @@ static void test_fast_div_s16_s16(void) {
 }
 
 static void test_fast_div_u16_u8(void) {
+  // Test fast_div()
   test_type_ranges<uint16_t, uint8_t>();
+
+  // Test fast_div16_8() whih has a much more limited range of inputs
+  TEST_ASSERT_EQUAL_UINT8(0, fast_div16_8(0, 0));
+  TEST_ASSERT_EQUAL_UINT8(1, fast_div16_8(1, 1));
+  TEST_ASSERT_EQUAL_UINT8(UINT8_MAX, fast_div16_8((uint16_t)UINT8_MAX*UINT8_MAX, UINT8_MAX));
 }
 
 static void test_fast_div_s16_s8(void) {
@@ -202,7 +208,13 @@ static void test_fast_div_32_32(void) {
   test_type_ranges<uint32_t>();
 }
 static void test_fast_div_32_16(void) {
+  // Test fast_div()
   test_type_ranges<uint32_t, uint16_t>();
+
+  // Test fast_div32_16() whih has a much more limited range of inputs
+  TEST_ASSERT_EQUAL_UINT16(0, fast_div32_16(0, 0));
+  TEST_ASSERT_EQUAL_UINT16(1, fast_div32_16(1, 1));
+  TEST_ASSERT_EQUAL_UINT16(UINT16_MAX, fast_div32_16((uint32_t)UINT16_MAX*UINT16_MAX, UINT16_MAX));
 }
 static void test_fast_div_32_8(void) {
   test_type_ranges<uint32_t, uint8_t>();
