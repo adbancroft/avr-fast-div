@@ -60,10 +60,28 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 
 // Public API
 
-uint8_t fast_div(uint8_t udividend, uint8_t udivisor);
-uint16_t fast_div(uint16_t udividend, uint8_t udivisor);
+/// @brief Optimized division of a 16-bit unsigned by a 8-bit unsigned with an *8-bit unsigned result*
+///
+/// @warning Should only be called if it's known that the result will fit into 8-bits
+///
+/// @param udividend Dividend
+/// @param udivisor Divisor
+/// @return udividend/udivisor
+uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor);
+
+/// @brief Optimized division of a 32-bit unsigned by a 16-bit unsigned with a *16-bit unsigned result*
+///
+/// @warning Should only be called if it's known that the result will fit into 16-bits
+///
+/// @param udividend Dividend
+/// @param udivisor Divisor
+/// @return udividend/udivisor
+uint16_t fast_div32_16(uint32_t udividend, uint16_t udivisor);
+
+uint8_t  fast_div(uint8_t  udividend, uint8_t  udivisor);
+uint16_t fast_div(uint16_t udividend, uint8_t  udivisor);
 uint16_t fast_div(uint16_t udividend, uint16_t udivisor);
-uint32_t fast_div(uint32_t udividend, uint8_t udivisor);
+uint32_t fast_div(uint32_t udividend, uint8_t  udivisor);
 uint32_t fast_div(uint32_t udividend, uint16_t udivisor);
 uint32_t fast_div(uint32_t udividend, uint32_t udivisor);
 

@@ -28,6 +28,16 @@
 #define AFD_PUBLICAPI_ATTTRIBUTE
 #endif
 
+uint8_t AFD_PUBLICAPI_ATTTRIBUTE fast_div16_8(uint16_t udividend, uint8_t udivisor) {
+  AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
+  return (uint8_t)avr_fast_div_impl::divide(udividend, udivisor);
+}
+
+uint16_t AFD_PUBLICAPI_ATTTRIBUTE fast_div32_16(uint32_t udividend, uint16_t udivisor) {
+  AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
+  return avr_fast_div_impl::divide(udividend, udivisor);
+}
+
 uint8_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint8_t udividend, uint8_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   // u8/u8 => u8
@@ -63,12 +73,6 @@ static inline uint32_t fast_divu32u16(uint32_t udividend, uint16_t udivisor) {
   if (udivisor > (uint16_t)(udividend >> 16U)) {
     return avr_fast_div_impl::divide(udividend, udivisor);
   }
-// Fallback to 24-bit if supported
-// #if defined(__UINT24_MAX__)
-//   if((udividend<__UINT24_MAX__)) {
-//     return (__uint24)udividend / (__uint24)udivisor;
-//   }  
-// #endif    
   // We now know that udividend > udivisor * 65536U
   // u32/u32=>u32
   return udividend / udivisor;
@@ -90,12 +94,6 @@ uint32_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint32_t udividend, uint32_t udivisor
   if (udivisor<=(uint32_t)UINT16_MAX) {
     return fast_divu32u16(udividend, (uint16_t)udivisor);
   }
-// Fallback to 24-bit if supported
-// #if defined(__UINT24_MAX__)
-//   if((udividend<__UINT24_MAX__) && (udivisor<__UINT24_MAX__)) {
-//     return (__uint24)udividend / (__uint24)udivisor;
-//   }  
-// #endif  
   // We now know that udivisor > 65535U. I.e. upper word bits are set
   // u32/u32=>u32
   return avr_fast_div_impl::divide_large_divisor<uint32_t>(udividend, udivisor);
