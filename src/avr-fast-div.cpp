@@ -22,29 +22,23 @@
 
 // ===================== Public Functions =====================
 
-#if defined(AFD_SMALL_TEXT)
-#define AFD_PUBLICAPI_ATTTRIBUTE __attribute__((noinline))
-#else
-#define AFD_PUBLICAPI_ATTTRIBUTE
-#endif
-
-uint8_t AFD_PUBLICAPI_ATTTRIBUTE fast_div16_8(uint16_t udividend, uint8_t udivisor) {
+uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   return (uint8_t)avr_fast_div_impl::divide(udividend, udivisor);
 }
 
-uint16_t AFD_PUBLICAPI_ATTTRIBUTE fast_div32_16(uint32_t udividend, uint16_t udivisor) {
+uint16_t fast_div32_16(uint32_t udividend, uint16_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   return avr_fast_div_impl::divide(udividend, udivisor);
 }
 
-uint8_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint8_t udividend, uint8_t udivisor) {
+uint8_t fast_div(uint8_t udividend, uint8_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   // u8/u8 => u8
   return udividend / udivisor;
 }
 
-uint16_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint16_t udividend, uint8_t udivisor) {
+uint16_t fast_div(uint16_t udividend, uint8_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   // Use u16/u8=>u8 if possible
   if (udivisor > (uint8_t)(udividend >> 8U)) {
@@ -58,7 +52,7 @@ uint16_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint16_t udividend, uint8_t udivisor)
   return udividend / udivisor;
 }
 
-uint16_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint16_t udividend, uint16_t udivisor) {
+uint16_t fast_div(uint16_t udividend, uint16_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   if (udivisor<=(uint16_t)UINT8_MAX) {
     return fast_div(udividend, (uint8_t)udivisor);
@@ -78,17 +72,17 @@ static inline uint32_t fast_divu32u16(uint32_t udividend, uint16_t udivisor) {
   return udividend / udivisor;
 }
 
-uint32_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint32_t udividend, uint16_t udivisor) {
+uint32_t fast_div(uint32_t udividend, uint16_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   return fast_divu32u16(udividend, udivisor);
 }
 
-uint32_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint32_t udividend, uint8_t udivisor) {
+uint32_t fast_div(uint32_t udividend, uint8_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   return fast_divu32u16(udividend, udivisor);
 }
 
-uint32_t AFD_PUBLICAPI_ATTTRIBUTE fast_div(uint32_t udividend, uint32_t udivisor) {
+uint32_t fast_div(uint32_t udividend, uint32_t udivisor) {
   AFD_ZERO_DIVISOR_CHECK(udividend, udivisor);
   // Shrink to u32/u16=>u32 if possible
   if (udivisor<=(uint32_t)UINT16_MAX) {
