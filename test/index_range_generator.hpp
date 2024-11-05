@@ -2,14 +2,14 @@
 
 #include "avr-fast-div.h"
 
-template <typename T, typename TRange = type_traits::make_unsigned_t<T>>
+template <typename T, typename TRange = afd_type_traits::make_unsigned_t<T>>
 static inline constexpr TRange safe_range(const T &min, const T &max) {
     return (min > max) ? (TRange)((TRange)min - (TRange)max) : (TRange)((TRange)max - (TRange)min);
 }  
 
 template <typename T>
 class index_range_generator {
-    using TStepSize = type_traits::make_unsigned_t<T>;
+    using TStepSize = afd_type_traits::make_unsigned_t<T>;
 
 public:
     constexpr index_range_generator(const T &begin, const T &end, const uint16_t &num_step) 

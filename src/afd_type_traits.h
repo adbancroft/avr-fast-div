@@ -5,7 +5,7 @@
 
 // A poor, but adequate, replacement for type traits templates in the
 // C++ standard library (since AVR-GCC doesn't ship with a standard library implementation).
-namespace type_traits {
+namespace afd_type_traits {
 
   /// integral_constant
   template<typename _Tp, _Tp __v>

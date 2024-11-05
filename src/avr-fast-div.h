@@ -33,7 +33,7 @@
 #endif
 
 #if defined(USE_OPTIMIZED_DIV)
-#include "type_traits.h"
+#include "afd_type_traits.h"
 
 namespace avr_fast_div_impl {
 
@@ -51,7 +51,7 @@ namespace avr_fast_div_impl {
 /// @tparam TUnsigned Output unsigned type
 /// @param svalue signed value, possible negative
 /// @return absolute value of svalue
-template <typename TSigned, typename TUnsigned=type_traits::make_unsigned_t<TSigned> >
+template <typename TSigned, typename TUnsigned=afd_type_traits::make_unsigned_t<TSigned> >
 static inline TUnsigned safe_abs(TSigned svalue) {
   return (TUnsigned)(svalue < 0 ? -((TUnsigned)svalue) : ((TUnsigned)svalue));
 }
@@ -99,13 +99,13 @@ static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
   //  int results = a/b;
   //  TEST_ASSERT_EQUAL(results, -1);
   // will fail - the result is 1
-  static_assert(type_traits::is_signed<TDividend>::value, "TDividend must be signed");
-  static_assert(type_traits::is_signed<TDivisor>::value, "TDivisor must be signed");
+  static_assert(afd_type_traits::is_signed<TDividend>::value, "TDividend must be signed");
+  static_assert(afd_type_traits::is_signed<TDivisor>::value, "TDivisor must be signed");
 
   // Convert to unsigned.
-  using udividend_t = type_traits::make_unsigned_t<TDividend>;
+  using udividend_t = afd_type_traits::make_unsigned_t<TDividend>;
   udividend_t udividend = avr_fast_div_impl::safe_abs(dividend);
-  using udivisor_t = type_traits::make_unsigned_t<TDivisor>;
+  using udivisor_t = afd_type_traits::make_unsigned_t<TDivisor>;
   udivisor_t udivisor = avr_fast_div_impl::safe_abs(divisor);
 
   // Call the overload specialized for the unsigned type (above) - these are optimized.

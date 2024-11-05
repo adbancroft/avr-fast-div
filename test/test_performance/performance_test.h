@@ -5,7 +5,7 @@
 #if defined(DETAILED_MESSAGES)
 template <typename T>
 void dump(const index_range_generator<T> &gen) {
-  if (type_traits::is_signed<T>::value) {
+  if (afd_type_traits::is_signed<T>::value) {
     TEST_PRINTF("%ld, %ld, %lu, %ld", (int32_t)gen.rangeMin(), (int32_t)gen.rangeMax(), (uint32_t)gen.step_size(), (uint32_t)gen.num_steps());
   } else {
     TEST_PRINTF("%lu, %lu, %lu, %ld", (uint32_t)gen.rangeMin(), (uint32_t)gen.rangeMax(), (uint32_t)gen.step_size(), (uint32_t)gen.num_steps());

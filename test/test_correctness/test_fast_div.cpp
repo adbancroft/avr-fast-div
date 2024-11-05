@@ -3,7 +3,7 @@
 #include "../test_utils.h"
 #include "avr-fast-div.h"
 
-namespace type_traits {
+namespace afd_type_traits {
   
   template <typename _Tp>
    struct min_value; 
@@ -56,7 +56,7 @@ static void assert_fastdiv(TDividend dividend, TDivisor divisor, bool is_signed)
   }
 }
 
-template <typename T, typename R = type_traits::make_unsigned_t<T>>
+template <typename T, typename R = afd_type_traits::make_unsigned_t<T>>
 static inline R absDelta(const T &min, const T &max) {
   if (min<0) {
     return (R)((R)max + (R)-min);
@@ -75,10 +75,10 @@ static void test_fastdiv_range(TDividend divMin, TDividend divMax, TDivisor divi
   // To avoid overflow calculating the range for signed values.
   // Since abs(INT_MIN) overflows.
   if (is_signed) {
-    if (divMin==type_traits::min_value<TDividend>::value) {
+    if (divMin==afd_type_traits::min_value<TDividend>::value) {
       ++divMin;
     }
-    if (divisorMin==type_traits::min_value<TDivisor>::value) {
+    if (divisorMin==afd_type_traits::min_value<TDivisor>::value) {
       ++divisorMin;
     }
   }
@@ -113,11 +113,11 @@ static void test_fastdiv_range(TDividend divMin, TDividend divMax, TDivisor divi
   // assert_fastdiv(divisorMin, divisorMax, is_signed);
 
 #if defined(EXTENDED_TEST_LEVEL) && (EXTENDED_TEST_LEVEL>0)
-  using udividend_t = typename type_traits::make_unsigned_t<TDividend>;
+  using udividend_t = typename afd_type_traits::make_unsigned_t<TDividend>;
   udividend_t dividendRange = absDelta(divMin, divMax);
   TEST_ASSERT_GREATER_THAN_UINT32(0, dividendRange);
 
-  using udivisor_t = typename type_traits::make_unsigned_t<TDivisor>;
+  using udivisor_t = typename afd_type_traits::make_unsigned_t<TDivisor>;
   udivisor_t divisorRange = absDelta(divisorMin, divisorMax);
   TEST_ASSERT_GREATER_THAN_UINT32(0, divisorRange);
 
@@ -149,18 +149,18 @@ static void test_fastdiv_range(TDividend divMin, TDividend divMax, TDivisor divi
 
 template <typename TDividend, typename TDivisor>
 static void test_type_ranges(void) {
-  test_fastdiv_range(type_traits::min_value<TDividend>::value, type_traits::max_value<TDividend>::value, 
-                     type_traits::min_value<TDivisor>::value, type_traits::max_value<TDivisor>::value,
-                     type_traits::is_signed<TDividend>::value);
+  test_fastdiv_range(afd_type_traits::min_value<TDividend>::value, afd_type_traits::max_value<TDividend>::value, 
+                     afd_type_traits::min_value<TDivisor>::value, afd_type_traits::max_value<TDivisor>::value,
+                     afd_type_traits::is_signed<TDividend>::value);
 }
 
 template <typename T>
 static void test_type_ranges(void) {
 
-  test_fastdiv_range(type_traits::min_value<T>::value, type_traits::max_value<T>::value, 
+  test_fastdiv_range(afd_type_traits::min_value<T>::value, afd_type_traits::max_value<T>::value, 
                     // Adjust the divisor range, else division will always be 1
-                     (T)((type_traits::min_value<T>::value/5)*4), (T)((type_traits::max_value<T>::value/5)*4),
-                     type_traits::is_signed<T>::value);
+                     (T)((afd_type_traits::min_value<T>::value/5)*4), (T)((afd_type_traits::max_value<T>::value/5)*4),
+                     afd_type_traits::is_signed<T>::value);
 }
 
 static void test_fast_div_u8(void) {

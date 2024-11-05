@@ -1,5 +1,5 @@
 #pragma once
-#include "type_traits.h"
+#include "afd_type_traits.h"
 
 namespace avr_fast_div_impl {
 
@@ -74,8 +74,8 @@ static inline uint16_t divide_step(uint16_t dividend, const uint8_t &divisor) {
  */
 template <typename TDividend, typename TDivisor>
 static inline TDivisor divide(TDividend dividend, const TDivisor &divisor) {
-  static_assert(type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
-  static_assert(type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
+  static_assert(afd_type_traits::is_unsigned<TDividend>::value, "TDividend must be unsigned");
+  static_assert(afd_type_traits::is_unsigned<TDivisor>::value, "TDivisor must be unsigned");
   static_assert(sizeof(TDividend)==sizeof(TDivisor)*2U, "TDivisor must half the size of TDividend");
 
   for (uint8_t index=0U; index<bit_width<TDivisor>::value; ++index) {
@@ -136,7 +136,7 @@ static constexpr inline T get_large_divisor_threshhold(void) {
  */
 template <typename T>
 static inline T divide_large_divisor(T udividend, T udivisor) {
-  static_assert(type_traits::is_unsigned<T>::value, "T must be unsigned");
+  static_assert(afd_type_traits::is_unsigned<T>::value, "T must be unsigned");
 
 #if defined(UNIT_TEST)
   if (udivisor<=get_large_divisor_threshhold<T>()) { 
