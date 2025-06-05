@@ -45,7 +45,14 @@ The code base is compatible with all platforms: non-AVR builds compile down to t
 
 **Note:** if the divisor (`b`) is a [compile time constant greater than 8-bits](https://stackoverflow.com/questions/47994933/why-doesnt-gcc-or-clang-on-arm-use-division-by-invariant-integers-using-multip), you probably want to use [libdivide](https://libdivide.com/) instead.
 
-You can reduce the amount of flash (.text segment) the library uses by defining `AFD_SMALL_TEXT`: this will reduce performance by up to 5% in some cases.
+You can control function inlining aggressiveness via the `AFD_INLINE` pre-processor flag (useful for flash constrained environments):
+
+|Value|Effect     |Description|
+|-----|-----------|-----------|
+|`0`  | Forced Off|Functions are declared `noinline`|
+|`1`  | Off       |Functions are *not* declared inline; compiler may choose to inline anyway|
+|`2`  | On        |Functions *are* declared inline; compiler may not choose to inline|
+|`3`  | Forced On|Functions are declared `always_inline`|
 
 ## Details
 

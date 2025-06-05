@@ -43,7 +43,7 @@ static void test_fast_div_perf_u16_u8_optimal(void)
   static constexpr index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX, (UINT8_MAX/2U)-1U);
   static constexpr index_range_generator<uint16_t> dividendGen = create_optimal_dividend_range<uint8_t, uint16_t>(divisorGen); 
 
-#if defined(UNOPTIMIZED_BUILD)  
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 75;
 #else
   constexpr uint8_t percentExpected = 40;
@@ -57,7 +57,7 @@ static void test_fast_div_perf_u16_u8_worst_case(void)
   index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX-2U, UINT8_MAX-4U);
   index_range_generator<uint16_t> dividendGen(UINT16_MAX/divisorGen.rangeMax()*3, UINT16_MAX, divisorGen.num_steps());
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 111;
 #else
   constexpr uint8_t percentExpected = 110;
@@ -70,7 +70,7 @@ static void test_fast_div_perf_u32_u8(void)
   static constexpr index_range_generator<uint8_t> divisorGen(2U, UINT8_MAX-2U, UINT8_MAX-4U);
   static constexpr index_range_generator<uint32_t> dividendGen((uint32_t)divisorGen.rangeMax()*2ULL, ((uint32_t)UINT16_MAX+2)*24ULL, divisorGen.num_steps()); 
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 60;
 #else
   constexpr uint8_t percentExpected = 35;
@@ -84,7 +84,7 @@ static void test_fast_div_perf_u32_u16_optimal(void)
   static constexpr index_range_generator<uint16_t> divisorGen(2U, UINT16_MAX, 333U);
   static constexpr index_range_generator<uint32_t> dividendGen = create_optimal_dividend_range<uint16_t, uint32_t>(divisorGen); 
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 60;
 #else
   constexpr uint8_t percentExpected = 35;
@@ -98,7 +98,7 @@ static void test_fast_div_perf_u32_u16_worst_case(void)
   static constexpr index_range_generator<uint16_t> divisorGen(2U, UINT16_MAX-2U, 333U);
   static constexpr index_range_generator<uint32_t> dividendGen(divisorGen.rangeMax()*2ULL, UINT32_MAX, divisorGen.num_steps());
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 105;
 #else
   constexpr uint8_t percentExpected = 105;
@@ -111,7 +111,7 @@ static void test_fast_div_perf_u16_u16(void)
   static constexpr index_range_generator<uint16_t> divisorGen(1U, UINT16_MAX/2U, 3333U);
   static constexpr index_range_generator<uint16_t> dividendGen(divisorGen.rangeMax()+1U, UINT16_MAX, divisorGen.num_steps());
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
 #if defined(AFD_SMALL_TEXT)
   constexpr uint8_t percentExpected = 70;
 #else
@@ -132,7 +132,7 @@ static void test_fast_div_perf_u32_u32(void)
   static constexpr index_range_generator<uint32_t> divisorGen(UINT16_MAX, UINT32_MAX/33UL, 3333U);
   static constexpr index_range_generator<uint32_t> dividendGen((UINT32_MAX/33UL)*2ULL, UINT32_MAX, divisorGen.num_steps());
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 80;
 #else
   constexpr uint8_t percentExpected = 65;
@@ -145,7 +145,7 @@ static void test_fast_div_perf_s32_s16_optimal(void)
   static constexpr index_range_generator<int16_t> divisorGen(INT16_MIN+1L, INT16_MAX, 3333U);
   static constexpr index_range_generator<int32_t> dividendGen(INT16_MIN*2L, INT16_MAX*2L, divisorGen.num_steps());
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint8_t percentExpected = 60;
 #else
   constexpr uint8_t percentExpected = 45;
@@ -158,7 +158,7 @@ static void test_fast_div_perf_s32_s16_worst_case(void)
   static constexpr index_range_generator<int16_t> divisorGen(1, INT16_MAX, 99U);
   static constexpr index_range_generator<int32_t> dividendGen(divisorGen.rangeMax()*3LL, INT32_MAX/55LL, divisorGen.num_steps());
 
-#if defined(UNOPTIMIZED_BUILD)
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
 #if defined(AFD_SMALL_TEXT)
   constexpr uint8_t percentExpected = 65;
 #else

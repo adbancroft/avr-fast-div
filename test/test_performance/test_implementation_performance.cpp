@@ -36,7 +36,7 @@ static void test_divide_optimised_u32u16_vs_u32u32_perf(void)
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
     checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x0000FFFFU;
   };
-#if defined(UNOPTIMIZED_BUILD)  
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint16_t percentExpected = 55;
 #else
   constexpr uint16_t percentExpected = 30;
@@ -56,7 +56,7 @@ static void test_divide_optimisedu16u8_vs_u16u16_perf(void)
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
     checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
   };
-#if defined(UNOPTIMIZED_BUILD)  
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint16_t percentExpected = 70;
 #else
   constexpr uint16_t percentExpected = 35;
@@ -76,7 +76,7 @@ static void test_divide_optimised16u8_vs_divide_optimisedu32u16_perf(void)
   static auto u16u8Test = [] (uint16_t index, uint32_t &checkSum) {
     checkSum += avr_fast_div_impl::divide(dividendGen.generate(index), divisorGen.generate(index)) & 0x00FFU;
   };
-#if defined(UNOPTIMIZED_BUILD)  
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint16_t percentExpected = 60;
 #else
   constexpr uint16_t percentExpected = 40;
@@ -95,7 +95,7 @@ static void test_divide_large_divisor16u16_vs_u16u16_perf(void)
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
     checkSum += avr_fast_div_impl::divide_large_divisor<uint16_t>(dividendGen.generate(index), divisorGen.generate(index));
   };
-#if defined(UNOPTIMIZED_BUILD)  
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint16_t percentExpected = 65;
 #else
   constexpr uint16_t percentExpected = 45;
@@ -114,7 +114,7 @@ static void test_divide_large_divisor32u32_vs_u32u32_perf(void)
   static auto optimizedTest = [] (uint16_t index, uint32_t &checkSum) {
     checkSum += avr_fast_div_impl::divide_large_divisor<uint32_t>(dividendGen.generate(index), divisorGen.generate(index));
   };
-#if defined(UNOPTIMIZED_BUILD)  
+#if AFD_INLINE==AFD_INLINE_FORCE_OFF || AFD_INLINE==AFD_INLINE_NO
   constexpr uint16_t percentExpected = 50;
 #else
   constexpr uint16_t percentExpected = 20;

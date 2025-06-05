@@ -58,6 +58,30 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 
 }
 
+/// @cond
+// For readability, define the inlining options here
+#define AFD_INLINE_FORCE_OFF   0U
+#define AFD_INLINE_NO     1U
+#define AFD_INLINE_YES 2U
+#define AFD_INLINE_FORCE_ON  3U
+/// @endcond
+
+// Default inlining selection
+#if !defined(AFD_INLINE)
+#define AFD_INLINE AFD_INLINE_YES
+#endif
+
+// Set the inlining attribute based on the AFD_INLINE value
+#if AFD_INLINE==AFD_INLINE_YES
+#define AFD_INLINE_ATTR inline
+#elif AFD_INLINE==AFD_INLINE_FORCE_ON
+#define AFD_INLINE_ATTR inline __attribute__((always_inline))
+#elif AFD_INLINE==AFD_INLINE_FORCE_OFF
+#define AFD_INLINE_ATTR __attribute__((noinline))
+#else
+#define AFD_INLINE_ATTR
+#endif
+
 // Public API
 
 /// @brief Optimized division of a 16-bit unsigned by a 8-bit unsigned with an *8-bit unsigned result*
@@ -67,7 +91,7 @@ static inline TUnsigned safe_abs(TSigned svalue) {
 /// @param udividend Dividend
 /// @param udivisor Divisor
 /// @return udividend/udivisor
-uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor);
+AFD_INLINE_ATTR uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor);
 
 /// @brief Optimized division of a 32-bit unsigned by a 16-bit unsigned with a *16-bit unsigned result*
 ///
@@ -76,18 +100,18 @@ uint8_t fast_div16_8(uint16_t udividend, uint8_t udivisor);
 /// @param udividend Dividend
 /// @param udivisor Divisor
 /// @return udividend/udivisor
-uint16_t fast_div32_16(uint32_t udividend, uint16_t udivisor);
+AFD_INLINE_ATTR uint16_t fast_div32_16(uint32_t udividend, uint16_t udivisor);
 
 /// @defgroup group-fast-div-overloads Replacements for the division operator
 /// @{
 
 // Unsigned overloads
-uint8_t  fast_div(uint8_t  udividend, uint8_t  udivisor);
-uint16_t fast_div(uint16_t udividend, uint8_t  udivisor);
-uint16_t fast_div(uint16_t udividend, uint16_t udivisor);
-uint32_t fast_div(uint32_t udividend, uint8_t  udivisor);
-uint32_t fast_div(uint32_t udividend, uint16_t udivisor);
-uint32_t fast_div(uint32_t udividend, uint32_t udivisor);
+AFD_INLINE_ATTR uint8_t  fast_div(uint8_t  udividend, uint8_t  udivisor);
+AFD_INLINE_ATTR uint16_t fast_div(uint16_t udividend, uint8_t  udivisor);
+AFD_INLINE_ATTR uint16_t fast_div(uint16_t udividend, uint16_t udivisor);
+AFD_INLINE_ATTR uint32_t fast_div(uint32_t udividend, uint8_t  udivisor);
+AFD_INLINE_ATTR uint32_t fast_div(uint32_t udividend, uint16_t udivisor);
+AFD_INLINE_ATTR uint32_t fast_div(uint32_t udividend, uint32_t udivisor);
 
 // Overload for all signed types
 template <typename TDividend, typename TDivisor>
@@ -117,6 +141,10 @@ static inline TDividend fast_div(TDividend dividend, TDivisor divisor) {
   }
   return uresult;
 }
+
+#if AFD_INLINE==AFD_INLINE_YES || AFD_INLINE==AFD_INLINE_FORCE_ON
+#include "avr-fast-div.hpp"
+#endif
 
 /// @}
 
